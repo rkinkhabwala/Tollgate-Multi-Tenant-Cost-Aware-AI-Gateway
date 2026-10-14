@@ -43,6 +43,7 @@ from presidio_analyzer import AnalyzerEngine, RecognizerResult
 from presidio_analyzer.nlp_engine import NlpEngineProvider
 
 from gateway.policy.schema import RedactionPolicy
+from gateway.redaction.cache import CacheScope, FindingsCache
 from gateway.redaction.recognizers.custom_regex import DENY_TERM, build_custom_recognizers
 from gateway.redaction.recognizers.pii import (
     BarePhoneRecognizer,
@@ -162,7 +163,8 @@ def apply_actions(text: str, findings: Sequence[Finding], actions: dict[str, Act
 class RedactionEngine:
     """Shared, thread-pooled Presidio analyzer. Build once per process."""
 
-    def __init__(self, workers: int = 4, model: str = "en_core_web_lg") -> None:
+    def __init__(self, workers: int = 4, model: str = "en_core_web_lg", cache: FindingsCache | None = None) -> None:
+        self.cache = cache if cache is not None else FindingsCache()
         logging.getLogger("presidio-analyzer").setLevel(logging.WARNING)
         nlp = NlpEngineProvider(
             nlp_configuration={"nlp_engine_name": "spacy", "models": [{"lang_code": "en", "model_name": model}]}
@@ -205,11 +207,35 @@ class RedactionEngine:
         ]
         return resolve_overlaps(findings, actions)
 
-    async def analyze_many(self, texts: Sequence[str], policy: RedactionPolicy) -> list[list[Finding]]:
-        """Analyze texts in parallel on the pool; results keep the input order."""
+    async def analyze_many(
+        self, texts: Sequence[str], policy: RedactionPolicy, scope: CacheScope | None = None
+    ) -> list[list[Finding]]:
+        """Analyze texts in parallel on the pool; results keep the input order.
+
+        With a `scope`, each text's findings are looked up in, and stored into, the
+        per-message cache (see `redaction/cache.py`). Only cache misses are analysed.
+        """
         loop = asyncio.get_running_loop()
-        jobs = [loop.run_in_executor(self._pool, self.analyze_sync, t, policy) if t.strip() else None for t in texts]
-        return [await j if j is not None else [] for j in jobs]
+        results: list[list[Finding] | None] = [None] * len(texts)
+        keys: list[bytes | None] = [None] * len(texts)
+        jobs = {}
+        for i, text in enumerate(texts):
+            if not text.strip():
+                results[i] = []
+                continue
+            if scope is not None:
+                keys[i] = self.cache.key(scope, text)
+                cached = self.cache.get(keys[i])
+                if cached is not None:
+                    results[i] = list(cached)
+                    continue
+            jobs[i] = loop.run_in_executor(self._pool, self.analyze_sync, text, policy)
+        for i, job in jobs.items():
+            found = await job
+            results[i] = found
+            if keys[i] is not None:
+                self.cache.put(keys[i], found)
+        return [r if r is not None else [] for r in results]
 
     def close(self) -> None:
         self._pool.shutdown(wait=False, cancel_futures=True)

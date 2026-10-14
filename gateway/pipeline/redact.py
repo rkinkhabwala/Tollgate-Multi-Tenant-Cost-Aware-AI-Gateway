@@ -37,6 +37,7 @@ from typing import Any
 from gateway.errors import GatewayError
 from gateway.pipeline.context import RequestContext
 from gateway.providers.base import ChatMessage, ChatRequest
+from gateway.redaction.cache import CacheScope
 from gateway.redaction.engine import Applied, RedactionEngine, apply_actions, effective_actions
 from gateway.redaction.vault import Vault
 
@@ -115,7 +116,9 @@ class RedactStage:
         policy = ctx.require_policy().redaction
         working = req.model_copy(deep=True)
         slots = _Slots.of(working)
-        findings = await self._engine.analyze_many(slots.texts, policy)
+        auth = ctx.auth
+        scope = CacheScope(auth.tenant_id, auth.app_id, auth.policy_version) if auth is not None else None
+        findings = await self._engine.analyze_many(slots.texts, policy, scope)
         actions = effective_actions(policy)
         vault = Vault()
         applied: list[Applied] = []
