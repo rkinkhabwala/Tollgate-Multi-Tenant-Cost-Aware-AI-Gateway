@@ -116,13 +116,20 @@ class ChatChunk(BaseModel):
 
 
 class ProviderError(Exception):
-    """Upstream failure. `message` is safe for clients/logs (no prompt content)."""
+    """Upstream failure. `message` is safe for clients/logs (no prompt content).
 
-    def __init__(self, message: str, *, status: int = 502, retryable: bool = True) -> None:
+    `retryable` failures (timeouts, connection errors, 429, 5xx, overload) trigger
+    availability fallback to the next candidate model and count against that model's
+    circuit breaker. Non-retryable ones (400, auth, unknown model) don't.
+    `code` is a short machine string recorded on the ledger attempt.
+    """
+
+    def __init__(self, message: str, *, status: int = 502, retryable: bool = True, code: str = "upstream_error") -> None:
         super().__init__(message)
         self.message = message
         self.status = status
         self.retryable = retryable
+        self.code = code
 
 
 class ProviderAdapter(Protocol):

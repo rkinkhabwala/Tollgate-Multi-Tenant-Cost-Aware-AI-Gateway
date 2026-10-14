@@ -139,18 +139,18 @@ class OllamaAdapter:
     def _raise_for(resp_status: int, body: bytes, model: str) -> None:
         # The body may echo request content, so it never goes into the message.
         if resp_status == 404:
-            raise ProviderError(f"model '{model}' is not available on the Ollama server", status=503, retryable=False)
+            raise ProviderError(f"model '{model}' is not available on the Ollama server", status=503, retryable=False, code="not_found")
         if resp_status == 400:
-            raise ProviderError("upstream rejected the request", status=400, retryable=False)
-        raise ProviderError(f"upstream error (HTTP {resp_status})", status=502)
+            raise ProviderError("upstream rejected the request", status=400, retryable=False, code="bad_request")
+        raise ProviderError(f"upstream error (HTTP {resp_status})", status=502, code="server_error")
 
     async def chat(self, model: str, req: ChatRequest) -> ChatResponse:
         try:
             resp = await self._client.post("/api/chat", json=self._payload(model, req, stream=False))
         except httpx.TimeoutException as exc:
-            raise ProviderError("upstream timed out", status=504) from exc
+            raise ProviderError("upstream timed out", status=504, code="timeout") from exc
         except httpx.HTTPError as exc:
-            raise ProviderError("upstream unreachable", status=503) from exc
+            raise ProviderError("upstream unreachable", status=503, code="unreachable") from exc
         if resp.status_code != 200:
             self._raise_for(resp.status_code, resp.content, model)
         frame = resp.json()
@@ -181,7 +181,7 @@ class OllamaAdapter:
                         continue
                     frame = json.loads(line)
                     if "error" in frame:
-                        raise ProviderError("upstream error mid-stream", status=502)
+                        raise ProviderError("upstream error mid-stream", status=502, code="stream_error")
                     msg = frame.get("message", {})
                     delta: dict[str, Any] = {}
                     if first:
@@ -207,15 +207,15 @@ class OllamaAdapter:
                     if delta:
                         yield ChatChunk(id=chunk_id, created=created, model=model, choices=[ChunkChoice(delta=delta)])
         except httpx.TimeoutException as exc:
-            raise ProviderError("upstream timed out", status=504) from exc
+            raise ProviderError("upstream timed out", status=504, code="timeout") from exc
         except httpx.HTTPError as exc:
-            raise ProviderError("upstream unreachable", status=503) from exc
+            raise ProviderError("upstream unreachable", status=503, code="unreachable") from exc
 
     async def embed(self, model: str, texts: list[str]) -> list[list[float]]:
         try:
             resp = await self._client.post("/api/embed", json={"model": model, "input": texts})
         except httpx.HTTPError as exc:
-            raise ProviderError("upstream unreachable", status=503) from exc
+            raise ProviderError("upstream unreachable", status=503, code="unreachable") from exc
         if resp.status_code != 200:
             self._raise_for(resp.status_code, resp.content, model)
         return resp.json()["embeddings"]
