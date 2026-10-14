@@ -11,7 +11,7 @@ import httpx
 import pytest
 from openai import AsyncOpenAI
 
-from tests.conftest import BASE_URL, Provisioned, provision_tenant
+from tests.conftest import Provisioned, TenantFactory
 
 pytestmark = [pytest.mark.stack, pytest.mark.ollama]
 
@@ -19,12 +19,16 @@ MSG = [{"role": "user", "content": "Reply with the single word: pong"}]
 
 
 @pytest.fixture(scope="module")
-async def two(gateway: httpx.AsyncClient, platform_admin: dict) -> tuple[Provisioned, Provisioned]:
-    return await provision_tenant(gateway, platform_admin, "sdk-a"), await provision_tenant(gateway, platform_admin, "sdk-b")
+async def two(tenant_factory: TenantFactory) -> tuple[Provisioned, Provisioned]:
+    return await tenant_factory("sdk-a"), await tenant_factory("sdk-b")
 
 
-def sdk(key: str) -> AsyncOpenAI:
-    return AsyncOpenAI(base_url=f"{BASE_URL}/v1", api_key=key, timeout=300, max_retries=0)
+@pytest.fixture(scope="module")
+def sdk(gateway_url: str):
+    def make(key: str) -> AsyncOpenAI:
+        return AsyncOpenAI(base_url=f"{gateway_url}/v1", api_key=key, timeout=300, max_retries=0)
+
+    return make
 
 
 async def usage(gateway: httpx.AsyncClient, key: str) -> dict:
@@ -41,7 +45,7 @@ async def wait_for_requests(gateway: httpx.AsyncClient, key: str, n: int, timeou
         await asyncio.sleep(0.25)
 
 
-async def test_two_tenants_use_sdk_and_see_only_their_own_usage(gateway: httpx.AsyncClient, two) -> None:
+async def test_two_tenants_use_sdk_and_see_only_their_own_usage(gateway: httpx.AsyncClient, two, sdk) -> None:
     a, b = two
     client_a, client_b = sdk(a.key), sdk(b.key)
 
@@ -76,7 +80,7 @@ async def test_two_tenants_use_sdk_and_see_only_their_own_usage(gateway: httpx.A
     assert (await usage(gateway, a.key2))["totals"]["requests"] == 0
 
 
-async def test_models_list_via_sdk(two) -> None:
+async def test_models_list_via_sdk(two, sdk) -> None:
     a, _ = two
     ids = [m.id async for m in sdk(a.key).models.list()]
     assert "auto" in ids and "ollama/qwen2.5:7b" in ids

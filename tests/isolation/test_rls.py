@@ -6,13 +6,15 @@ rows (spec §4, §15, §17).
 """
 
 import uuid
+from collections.abc import AsyncIterator
 
 import pytest
+from redis.asyncio import Redis
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 
 from gateway.db.session import Database
-from tests.conftest import make_tenant_with_app
+from tests.conftest import make_tenant_with_app, purge_tenant
 
 pytestmark = pytest.mark.stack
 
@@ -20,8 +22,11 @@ TABLES = ["tenants", "apps", "api_keys", "usage_events"]
 
 
 @pytest.fixture(scope="module")
-async def two_tenants(db: Database) -> tuple[dict, dict]:
-    return await make_tenant_with_app(db, "rls-a"), await make_tenant_with_app(db, "rls-b")
+async def two_tenants(db: Database, redis: Redis) -> AsyncIterator[tuple[dict, dict]]:
+    a, b = await make_tenant_with_app(db, "rls-a"), await make_tenant_with_app(db, "rls-b")
+    yield a, b
+    for t in (a, b):
+        await purge_tenant(db, redis, t["tenant_id"])
 
 
 @pytest.mark.parametrize("table", TABLES)

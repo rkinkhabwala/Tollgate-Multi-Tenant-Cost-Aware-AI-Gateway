@@ -153,7 +153,7 @@ def build_services(settings: Settings, db: Database, redis: Redis, registry: Pro
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings: Settings = app.state.settings
-    configure_logging(settings.log_level)
+    configure_logging(settings.log_level, settings.log_file)
     db = Database(settings.database_url_app, settings.database_url_system)
     redis = Redis.from_url(settings.redis_url, decode_responses=False)
     registry = ProviderRegistry({"ollama": OllamaAdapter(settings.ollama_base_url, settings.ollama_timeout_s)})

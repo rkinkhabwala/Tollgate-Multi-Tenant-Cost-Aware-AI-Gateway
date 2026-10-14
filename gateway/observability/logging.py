@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import sys
 from datetime import UTC, datetime
@@ -98,14 +99,20 @@ class JsonFormatter(logging.Formatter):
         return scrub(json.dumps(payload, default=str))
 
 
-def configure_logging(level: str = "INFO") -> None:
-    """Install the JSON handler + filter on the root logger and uvicorn's loggers."""
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(JsonFormatter())
-    handler.addFilter(SensitiveDataFilter())
+def configure_logging(level: str = "INFO", log_file: str | os.PathLike[str] | None = None) -> None:
+    """Install the JSON handler + filter on the root logger and uvicorn's loggers.
+
+    `log_file`, if given, receives the same filtered JSON lines as stdout.
+    """
+    handlers: list[logging.Handler] = [logging.StreamHandler(sys.stdout)]
+    if log_file is not None:
+        handlers.append(logging.FileHandler(log_file, encoding="utf-8"))
+    for handler in handlers:
+        handler.setFormatter(JsonFormatter())
+        handler.addFilter(SensitiveDataFilter())
 
     root = logging.getLogger()
-    root.handlers = [handler]
+    root.handlers = handlers
     root.setLevel(level.upper())
     for name in ("uvicorn", "uvicorn.error", "uvicorn.access"):
         lg = logging.getLogger(name)

@@ -19,6 +19,7 @@ class Settings(BaseSettings):
 
     env: str = "dev"
     log_level: str = "INFO"
+    log_file: Path | None = None  # optional extra JSON log sink (tests scan it for leaks)
 
     # --- PostgreSQL -------------------------------------------------------------
     # Three roles (see docker/postgres/01-roles.sh):

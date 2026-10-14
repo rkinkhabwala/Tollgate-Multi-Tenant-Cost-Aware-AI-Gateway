@@ -8,14 +8,14 @@ import pytest
 from sqlalchemy import text
 
 from gateway.db.session import Database
-from tests.conftest import Provisioned, login, provision_tenant
+from tests.conftest import Provisioned, TenantFactory, login
 
 pytestmark = pytest.mark.stack
 
 
 @pytest.fixture(scope="module")
-async def tenant(gateway: httpx.AsyncClient, platform_admin: dict) -> Provisioned:
-    return await provision_tenant(gateway, platform_admin, "admin-it")
+async def tenant(tenant_factory: TenantFactory) -> Provisioned:
+    return await tenant_factory("admin-it")
 
 
 def bearer(key: str) -> dict[str, str]:
@@ -72,8 +72,8 @@ async def test_ip_allowlist_enforced(gateway: httpx.AsyncClient, tenant: Provisi
     assert r.status_code == 403
 
 
-async def test_suspending_app_blocks_keys_immediately(gateway: httpx.AsyncClient, platform_admin: dict) -> None:
-    t = await provision_tenant(gateway, platform_admin, "suspend")
+async def test_suspending_app_blocks_keys_immediately(gateway: httpx.AsyncClient, tenant_factory: TenantFactory) -> None:
+    t = await tenant_factory("suspend")
     assert (await gateway.get("/v1/models", headers=bearer(t.key))).status_code == 200
     r = await gateway.patch(f"/admin/tenants/{t.tenant_id}/apps/{t.app_id}", json={"status": "suspended"}, headers=t.admin_headers)
     assert r.status_code == 200 and r.json()["status"] == "suspended"

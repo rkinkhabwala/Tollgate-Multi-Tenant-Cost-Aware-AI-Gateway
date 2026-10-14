@@ -12,16 +12,15 @@ import pytest
 from redis.asyncio import Redis
 
 from gateway.db.session import Database
-from gateway.settings import get_settings
-from tests.conftest import Provisioned, insert_usage, provision_tenant
+from tests.conftest import Provisioned, TenantFactory, insert_usage
 
 pytestmark = pytest.mark.stack
 
 
 @pytest.fixture(scope="module")
-async def tenants(gateway: httpx.AsyncClient, platform_admin: dict, db: Database) -> tuple[Provisioned, Provisioned]:
-    a = await provision_tenant(gateway, platform_admin, "iso-a")
-    b = await provision_tenant(gateway, platform_admin, "iso-b")
+async def tenants(tenant_factory: TenantFactory, db: Database) -> tuple[Provisioned, Provisioned]:
+    a = await tenant_factory("iso-a")
+    b = await tenant_factory("iso-b")
     await insert_usage(db, tenant_id=a.tenant_id, app_id=a.app_id, key_id=a.key_id, n=3, baseline="0.010000")
     await insert_usage(db, tenant_id=b.tenant_id, app_id=b.app_id, key_id=b.key_id, n=5, baseline="0.020000")
     return a, b
@@ -108,14 +107,10 @@ async def test_listing_keys_never_returns_secrets(gateway: httpx.AsyncClient, te
 
 
 # --- Redis key naming -------------------------------------------------------------
-async def test_tenant_redis_keys_are_prefixed(gateway: httpx.AsyncClient, tenants) -> None:
+async def test_tenant_redis_keys_are_prefixed(gateway: httpx.AsyncClient, tenants, redis: Redis) -> None:
     a, _ = tenants
     await gateway.get("/v1/models", headers=bearer(a.key))  # touches rate-limit + policy keys
-    redis = Redis.from_url(get_settings().redis_url)
-    try:
-        keys = [k.decode() async for k in redis.scan_iter(match="*", count=1000)]
-    finally:
-        await redis.aclose()
+    keys = [k.decode() async for k in redis.scan_iter(match="*", count=1000)]
     for k in keys:
         assert k.startswith("t:") or k.startswith("sys:"), f"unscoped redis key: {k}"
         if k.startswith("t:"):
