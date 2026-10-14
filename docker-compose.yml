@@ -1,0 +1,104 @@
+# Tollgate local stack (spec §2, §16 Phase 1).
+#   docker compose up -d        # start everything
+#   docker compose logs -f ollama-init   # watch the one-time model pull (~5 GB)
+#
+# Host ports are overridable via env (see .env.example) so they can coexist with
+# anything already listening on your machine.
+name: tollgate
+
+x-gateway-env: &gateway-env
+  TOLLGATE_ENV: ${TOLLGATE_ENV:-dev}
+  TOLLGATE_LOG_LEVEL: ${TOLLGATE_LOG_LEVEL:-INFO}
+  TOLLGATE_DATABASE_URL_OWNER: postgresql+asyncpg://tollgate:${POSTGRES_PASSWORD:-tollgate}@postgres:5432/tollgate
+  TOLLGATE_DATABASE_URL_APP: postgresql+asyncpg://tollgate_app:${TOLLGATE_APP_DB_PASSWORD:-tollgate_app}@postgres:5432/tollgate
+  TOLLGATE_DATABASE_URL_SYSTEM: postgresql+asyncpg://tollgate_system:${TOLLGATE_SYSTEM_DB_PASSWORD:-tollgate_system}@postgres:5432/tollgate
+  TOLLGATE_REDIS_URL: redis://redis:6379/0
+  # Point at the host's native Ollama (much faster on macOS, which has no GPU
+  # passthrough for Docker) with: TOLLGATE_OLLAMA_BASE_URL=http://host.docker.internal:11434
+  TOLLGATE_OLLAMA_BASE_URL: ${TOLLGATE_OLLAMA_BASE_URL:-http://ollama:11434}
+  TOLLGATE_DEFAULT_MODEL: ${TOLLGATE_DEFAULT_MODEL:-ollama/qwen2.5:7b}
+  TOLLGATE_JWT_SECRET: ${TOLLGATE_JWT_SECRET:-dev-only-change-me-dev-only-change-me}
+  TOLLGATE_BOOTSTRAP_ADMIN_EMAIL: ${TOLLGATE_BOOTSTRAP_ADMIN_EMAIL:-admin@tollgate.local}
+  TOLLGATE_BOOTSTRAP_ADMIN_PASSWORD: ${TOLLGATE_BOOTSTRAP_ADMIN_PASSWORD:-admin-dev-password}
+  # Optional hosted providers (Phase 3). Unset is fine.
+  TOLLGATE_OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  TOLLGATE_ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+
+services:
+  gateway:
+    build: .
+    image: tollgate-gateway:dev
+    environment: *gateway-env
+    ports:
+      - "${TOLLGATE_PORT:-8000}:8000"
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      ollama: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: tollgate
+      POSTGRES_USER: tollgate
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tollgate}
+      TOLLGATE_APP_DB_PASSWORD: ${TOLLGATE_APP_DB_PASSWORD:-tollgate_app}
+      TOLLGATE_SYSTEM_DB_PASSWORD: ${TOLLGATE_SYSTEM_DB_PASSWORD:-tollgate_system}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/01-roles.sh:/docker-entrypoint-initdb.d/01-roles.sh:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tollgate -d tollgate"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis/redis-stack-server:7.4.0-v3
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  ollama:
+    image: ollama/ollama:0.12.6
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # One-shot: pulls the models into the shared volume, then exits 0.
+  # Re-running is cheap (already-present layers are skipped).
+  ollama-init:
+    image: ollama/ollama:0.12.6
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c", "ollama pull qwen2.5:7b && ollama pull nomic-embed-text"]
+    depends_on:
+      ollama: { condition: service_healthy }
+    restart: "no"
+
+volumes:
+  pgdata:
+  redisdata:
+  ollama:
