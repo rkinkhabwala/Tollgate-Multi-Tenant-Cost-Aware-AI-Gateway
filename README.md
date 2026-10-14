@@ -15,19 +15,31 @@ The full design is in [spec.md](spec.md). This repo is at **Phase 1** (spec §16
 
 ## Quick start
 
-Prerequisites: Docker (with Compose v2), [uv](https://docs.astral.sh/uv/) for running tests and scripts on the host, and about 6 GB of disk for the models.
+Prerequisites:
+- Docker with Compose v2;
+- [uv](https://docs.astral.sh/uv/) for running tests and scripts on the host;
+- [Ollama](https://ollama.com) installed natively, plus about 6 GB of disk for the models.
 
 ```bash
-docker compose up -d                      # gateway, postgres, redis, ollama (+ one-time model pull)
-docker compose logs -f ollama-init        # first run only: pulls qwen2.5:7b + nomic-embed-text (~5 GB)
+ollama serve &                            # or: brew services start ollama
+ollama pull qwen2.5:7b && ollama pull nomic-embed-text
+cp .env.example .env                      # optional; the defaults are baked into docker-compose.yml
+docker compose up -d                      # gateway, postgres, redis
 curl localhost:8000/readyz                # {"status":"ok","postgres":"ok","redis":"ok"}
 ```
 
-The gateway applies migrations on start and creates a bootstrap **platform admin**: `admin@tollgate.local` / `admin-dev-password`. Override both via `.env` (see [.env.example](.env.example)).
+By default the gateway talks to the **native Ollama on the host** (`TOLLGATE_OLLAMA_BASE_URL=http://host.docker.internal:11434`). That is much faster than a container on macOS, where Docker has no GPU access.
 
-> **macOS tip:** Docker on macOS has no GPU passthrough, so Ollama in a container runs on CPU (several seconds per reply). A native Ollama on the host is much faster:
-> `ollama serve & ollama pull qwen2.5:7b`, then set
-> `TOLLGATE_OLLAMA_BASE_URL=http://host.docker.internal:11434` in `.env` and `docker compose up -d gateway`.
+**Fallback: Ollama in Docker.** It runs on CPU on macOS, so it is slow, but it needs nothing installed on the host:
+
+```bash
+TOLLGATE_OLLAMA_BASE_URL=http://ollama:11434 docker compose --profile ollama-docker up -d
+docker compose logs -f ollama-init        # one-time pull of qwen2.5:7b + nomic-embed-text (~5 GB)
+```
+
+Put `TOLLGATE_OLLAMA_BASE_URL=http://ollama:11434` in `.env` to make the fallback stick.
+
+The gateway applies migrations on start and creates a bootstrap **platform admin**: `admin@tollgate.local` / `admin-dev-password`. Override both via `.env` (see [.env.example](.env.example)).
 
 ### Seed demo tenants
 
@@ -132,9 +144,16 @@ The script brings the stack up, seeds it, and then demonstrates the Phase 1 "don
 ```bash
 uv sync                                   # installs dev deps (pytest, respx, fakeredis, openai)
 uv run pytest tests/unit                  # no infrastructure needed
-docker compose up -d && uv run pytest     # everything
-uv run pytest -m "not ollama"             # everything except the slow real-model SDK test
+docker compose up -d && uv run pytest     # everything (needs postgres + redis + native Ollama)
+uv run pytest -m "not ollama"             # everything except the real-model SDK test
 ```
+
+**Test runs never touch your dev data.** Each pytest session:
+- creates a throwaway database `tollgate_test_<random>` on the compose Postgres and migrates it, then drops it at the end;
+- uses Redis DB 15 (dev uses DB 0) and flushes it before and after;
+- starts its own gateway: a real uvicorn server, in-process on a random port.
+
+Fixtures purge every tenant they create, and a teardown guard fails the run if row counts in the dev database changed.
 
 | Suite | Needs | What it covers |
 |---|---|---|
@@ -142,7 +161,7 @@ uv run pytest -m "not ollama"             # everything except the slow real-mode
 | `tests/isolation` | compose stack | RLS bypass attempts as the app DB role. Cross-tenant reads and writes through the data and admin APIs. Forged keys. Redis key prefixing. |
 | `tests/integration` | compose stack (+ Ollama) | OpenAI SDK against the real gateway from two tenants. Revocation in under 1 s. Key rotation, scopes, IP allowlist, suspension, audit, lockout, refresh rotation. |
 
-The isolation and integration suites **fail rather than skip** when the stack is down (spec §17: the isolation suite must never be skipped). Point them elsewhere with `TOLLGATE_TEST_BASE_URL`, plus the `TOLLGATE_DATABASE_URL_*` and `TOLLGATE_REDIS_URL` variables.
+The isolation and integration suites **fail rather than skip** when Postgres or Redis is down (spec §17: the isolation suite must never be skipped). They find the infrastructure through the usual `TOLLGATE_DATABASE_URL_*`, `TOLLGATE_REDIS_URL` and `TOLLGATE_OLLAMA_BASE_URL` variables.
 
 ## How it's put together
 
