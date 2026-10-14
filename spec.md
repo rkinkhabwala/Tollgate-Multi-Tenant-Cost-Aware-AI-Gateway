@@ -96,8 +96,16 @@ Tenant (an organization / business unit)
 ```
 
 Isolation rules (all must have tests):
-- Every table except `providers`/`models` carries `tenant_id`. Postgres **RLS** policies enforce `tenant_id = current_setting('app.tenant_id')`; the gateway sets this per transaction.
-- Every Redis key is prefixed `t:{tenant_id}:a:{app_id}:` — including cache entries and vector index tags. **Semantic cache search always filters by tenant_id and app_id** (default) or tenant_id (if the tenant opts in to cross-app sharing).
+- Every table except `providers`/`models` carries `tenant_id`. Postgres **RLS** policies (ENABLE + FORCE) enforce `tenant_id = current_setting('app.tenant_id')`; the gateway sets this per transaction with `set_config(..., is_local => true)`.
+- The gateway connects to Postgres as three roles:
+  - `tollgate` (owner): runs migrations and owns the SECURITY DEFINER helpers (partition creation, rollup refresh).
+  - `tollgate_app` (NOBYPASSRLS): every tenant-scoped query.
+  - `tollgate_system` (BYPASSRLS): only for work that happens before a tenant is known or that spans tenants. That means API-key lookup by prefix, admin login, the usage batch writer, `last_used_at` batching, and platform-admin listings.
+- Every tenant-owned Redis key is prefixed `t:{tenant_id}:a:{app_id}:` — including cache entries and vector index tags. The only exceptions are system infrastructure keys under `sys:`, which are never returned to a tenant:
+  - `sys:auth:{prefix8}`, the API-key resolver cache, which must be global because the tenant is unknown until the key resolves;
+  - `sys:usage_events`, the usage stream consumed by the batch writer;
+  - `sys:admin_rl:{ip}`, admin rate limiting.
+  All key names are built in `gateway/redis_keys.py`. **Semantic cache search always filters by tenant_id and app_id** (default) or tenant_id (if the tenant opts in to cross-app sharing).
 - Logs never contain raw prompts; only redacted text, and only when the app's `log_prompts` policy is on.
 - A platform admin role (`platform_admin`) can see across tenants; nothing else can.
 
@@ -200,9 +208,35 @@ CREATE TABLE audit_log (                          -- control-plane changes
   target      TEXT NOT NULL,
   diff        JSONB
 );
+
+-- Control-plane users (§6.3). platform_admin has tenant_id NULL.
+CREATE TABLE admin_users (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id       UUID REFERENCES tenants(id),
+  email           TEXT NOT NULL UNIQUE,
+  password_hash   TEXT NOT NULL,                  -- Argon2id
+  role            TEXT NOT NULL,                  -- platform_admin | tenant_admin | tenant_viewer
+  failed_attempts INT NOT NULL DEFAULT 0,
+  locked_until    TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE admin_refresh_tokens (               -- opaque, SHA-256 stored, rotated on use
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES admin_users(id),
+  tenant_id   UUID,
+  token_hash  BYTEA NOT NULL UNIQUE,
+  expires_at  TIMESTAMPTZ NOT NULL,
+  revoked_at  TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 ```
 
-Add `usage_daily` as a materialized rollup (tenant, app, day, routed_model, cache_status → sums) refreshed every 5 minutes for dashboards.
+Both admin tables are RLS-protected like every other tenant table. Login and refresh run as `tollgate_system`.
+
+`usage_events` partitions are created three months ahead by the SECURITY DEFINER function `ensure_usage_partition(date)`, called from the rollup worker. A DEFAULT partition is the safety net.
+
+Add `usage_daily` as a materialized rollup (tenant, app, day, routed_model, cache_status → sums) refreshed every 5 minutes for dashboards. Postgres does not apply RLS to materialized views, so only `tollgate_system` may read it and callers filter by tenant explicitly.
 
 ---
 
@@ -222,10 +256,23 @@ Add `usage_daily` as a materialized rollup (tenant, app, day, routed_model, cach
 4. Requested model (if pinned, not `auto`) is in the app policy's `allowed_models`.
 5. Request features allowed by policy (tools, JSON mode, max context).
 
-Failures return OpenAI-shaped errors: `401 invalid_api_key`, `403 permission_denied`, `402 budget_exceeded`, `429 rate_limit_exceeded`.
+Failures return OpenAI-shaped errors (`{"error": {"message", "type", "param", "code"}}`): `401 invalid_api_key`, `403 permission_denied`, `402 budget_exceeded`, `429 rate_limit_exceeded` (with `Retry-After` and `x-ratelimit-*` headers).
+
+Other error codes the gateway uses:
+| Status | `code` | When |
+|---|---|---|
+| 400 | `invalid_request` | Malformed body. The message never echoes input. |
+| 400 | `context_length_exceeded` | Input exceeds `limits.max_input_tokens` |
+| 400 | `sensitive_data_blocked` | A `block` redaction action fired (§7.3) |
+| 404 | `model_not_found` | Pinned model is allowed by policy but not in the catalog |
+| 404 | `not_found` | Admin target missing, or invisible under RLS |
+| 409 | `conflict` | Duplicate tenant, app or user |
+| 413 | `request_too_large` | Body over the size limit (§15) |
+| 423 | `account_locked` | Admin login lockout |
+| 502 / 503 / 504 | `upstream_error` / `model_unavailable` / `upstream_timeout` | Provider failure |
 
 ### 6.3 Admin users (control plane)
-- v1: local users with Argon2id password hashes, short-lived JWT (15 min) + refresh token. Design the auth module behind an interface so OIDC (Okta/Entra/Google) can replace it.
+- v1: local users (`admin_users`) with Argon2id password hashes, short-lived HS256 JWT (15 min), and an opaque refresh token. The refresh token is stored hashed and is single-use: every refresh rotates it. Five consecutive failed logins lock the account for 15 minutes (HTTP 423). A platform admin is bootstrapped from env on first start. Design the auth module behind an interface so OIDC (Okta/Entra/Google) can replace it.
 - Roles: `platform_admin`, `tenant_admin` (manage apps, keys, policies, budgets in own tenant), `tenant_viewer` (read usage).
 - Every control-plane mutation writes to `audit_log`.
 
@@ -408,14 +455,16 @@ Validate with Pydantic models; reject unknown keys; version every change.
 | POST | `/v1/chat/completions` | Streaming + non-streaming; `model: "auto"` or tier alias or pinned |
 | POST | `/v1/embeddings` | Routed to local `nomic-embed-text` by default |
 | GET | `/v1/models` | Models + aliases this key may use |
-| GET | `/v1/usage` | Requires `usage:read`; this app's usage for a date range |
+| GET | `/v1/usage` | Requires `usage:read`; this app's usage for a date range (see below) |
 
 ### Control plane
 | Method | Path | Role |
 |---|---|---|
 | POST | `/admin/auth/login`, `/admin/auth/refresh` | any |
 | POST/GET | `/admin/tenants` | platform_admin |
-| POST/GET/PATCH | `/admin/tenants/{tid}/apps` | tenant_admin |
+| POST | `/admin/tenants/{tid}/users` | platform_admin; tenant_admin (own tenant) — create tenant_admin / tenant_viewer users |
+| POST/GET | `/admin/tenants/{tid}/apps` | tenant_admin (GET also tenant_viewer) |
+| PATCH | `/admin/tenants/{tid}/apps/{aid}` | tenant_admin — name, status, baseline_model |
 | POST/GET | `/admin/apps/{aid}/keys`, `DELETE /admin/keys/{kid}` (revoke) | tenant_admin |
 | GET/PUT | `/admin/apps/{aid}/policy` | tenant_admin |
 | GET/PUT | `/admin/apps/{aid}/budget` | tenant_admin |
@@ -424,6 +473,15 @@ Validate with Pydantic models; reject unknown keys; version every change.
 | POST | `/admin/redaction/test` | tenant_admin — dry-run a text against the app's redaction policy |
 | POST | `/admin/routing/test` | tenant_admin — show classification + chosen model for a sample request |
 | GET | `/admin/audit` | tenant_admin |
+
+### `/v1/usage` response
+`GET /v1/usage?from=YYYY-MM-DD&to=YYYY-MM-DD`. Both bounds are inclusive UTC dates; the default is the last 30 days and the maximum range is 366 days. The query runs under the key's tenant RLS session and also filters by the key's `app_id`.
+```json
+{"object": "usage", "app_id": "…", "from": "2026-09-15", "to": "2026-10-14",
+ "totals": {"requests": 2, "input_tokens": 70, "output_tokens": 16,
+            "actual_cost_usd": 0.0, "baseline_cost_usd": 0.00045, "saved_usd": 0.00045},
+ "data":   [{"date": "2026-10-14", "requests": 2, "...": "same fields as totals"}]}
+```
 
 ### Onboarding flow (what an app team does)
 1. Tenant admin creates app → picks baseline model → gets default policy.
@@ -474,6 +532,11 @@ tollgate/
 │   │   ├── features.py  knn.py  table.py
 │   ├── policy/ (schema.py, loader.py)
 │   ├── db/ (models.py, session.py, rls.py, migrations/)
+│   ├── services/admin.py          # control-plane mutations + audit (shared by admin API and scripts)
+│   ├── security/ (api_keys.py, passwords.py, admin_auth.py)   # key format/hash, Argon2id, JWT + AdminAuthProvider
+│   ├── catalog.py                 # models.yaml → models table → in-memory prices / cost()
+│   ├── redis_keys.py              # the only place Redis key names are built
+│   ├── errors.py                  # OpenAI-shaped GatewayError + helpers
 │   ├── workers/ (usage_writer.py, rollups.py, seed_indexer.py)
 │   └── observability/ (otel.py, metrics.py, logging.py)
 ├── admin-ui/                      # React + Vite (Phase 5)
@@ -553,6 +616,7 @@ Each phase ends with a runnable `docker compose up`, passing tests, and a short 
 - Tables + Alembic migrations + RLS. Seed script creates 2 tenants × 2 apps.
 - API key creation/revocation (admin API, no UI yet), AuthN/AuthZ stages.
 - `/v1/chat/completions` non-streaming + streaming, routed to a single configured model (Ollama).
+- Model catalog (`config/models.yaml` → `models` table) loaded at startup, because metering needs prices. Routing over the catalog still arrives in Phase 3.
 - Rate limiting (token bucket in Redis).
 - Usage events via Redis Stream → Postgres worker; cost + baseline computed.
 - **Done when:** two apps in different tenants call the gateway with the OpenAI SDK, each sees only its own `/v1/usage`, and revoked keys fail within 1 s.
@@ -606,3 +670,20 @@ Each phase ends with a runnable `docker compose up`, passing tests, and a short 
 | Classifier | heuristics + kNN | small local LLM, or a fine-tuned DistilBERT |
 | Usage store | Postgres partitions | ClickHouse once events exceed ~50M/month |
 | Admin auth | local users + JWT | OIDC from day one |
+---
+
+## 19. Changelog
+
+Decisions made while building, recorded so the spec stays the source of truth.
+
+### Phase 1 (2026-10-14)
+- **Redis `sys:` prefix** (§4). The API-key resolver cache, the usage stream and admin rate limiting use global `sys:` keys. The tenant is unknown until a key resolves, and the stream is consumed across tenants. These keys are never served to tenants. Every tenant-owned key keeps the `t:{tid}:a:{aid}:` prefix.
+- **Three DB roles** (§4): owner, `tollgate_app` (RLS enforced), `tollgate_system` (BYPASSRLS, restricted to pre-tenant and cross-tenant system paths). Partition creation and `usage_daily` refresh are SECURITY DEFINER functions only `tollgate_system` may execute.
+- **Admin tables** (§5): `admin_users` and `admin_refresh_tokens`, required by §6.3 but missing from §5.
+- **`POST /admin/tenants/{tid}/users`** (§12). There was no way to create tenant-scoped admin users without it.
+- **App PATCH path** (§12) is the item path `/admin/tenants/{tid}/apps/{aid}`.
+- **Catalog loaded in Phase 1** (§16). Hosted prices remain placeholders, and OpenAI rows are omitted until concrete model names are chosen.
+- **Extra error codes** (§6.2): 400 `invalid_request` / `context_length_exceeded`, 404 `model_not_found` / `not_found`, 409, 413, 423, and 5xx upstream codes.
+- **`/v1/usage` response shape** (§12): totals plus a per-day breakdown, scoped to the key's app.
+- **Extra modules** (§13): `services/`, `security/`, `catalog.py`, `redis_keys.py`, `errors.py`.
+- **Routing in Phase 1** is a static `StaticRouteStage` that honours pinning per policy. The classifier-driven router replaces it in Phase 3.
