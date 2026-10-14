@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     jwt_refresh_ttl_s: int = 7 * 24 * 3600
     login_max_failures: int = 5
     login_lockout_s: int = 15 * 60
-    admin_rpm_per_ip: int = 120
+    admin_rpm_per_ip: int = 300
     bootstrap_admin_email: str | None = "admin@tollgate.local"
     bootstrap_admin_password: SecretStr | None = SecretStr("admin-dev-password")
 

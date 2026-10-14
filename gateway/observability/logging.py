@@ -53,7 +53,7 @@ _SCRUBBERS: list[tuple[re.Pattern[str], str]] = [
 ]
 
 # Attributes every LogRecord has; anything else came from `extra=`.
-_STANDARD_ATTRS = set(vars(logging.LogRecord("", 0, "", 0, "", (), None))) | {"message", "asctime"}
+_STANDARD_ATTRS = set(vars(logging.LogRecord("", 0, "", 0, "", (), None))) | {"message", "asctime", "color_message"}
 
 
 def scrub(text: str) -> str:
