@@ -40,6 +40,12 @@ def test_secret_recognizers(engine: RedactionEngine, text: str) -> None:
     assert "SECRET" in types(engine, text)
 
 
+def test_capitalised_message_words_are_not_persons(engine: RedactionEngine) -> None:
+    found = engine.analyze_sync("Hi, I'm Rosalind Mercer. Email rosalind@corp.example or Call 415-555-0163.", RedactionPolicy())
+    persons = [f for f in found if f.entity_type == "PERSON"]
+    assert len(persons) == 1
+
+
 def test_low_entropy_long_word_near_keyword_is_not_secret(engine: RedactionEngine) -> None:
     assert "SECRET" not in types(engine, "the token was aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 

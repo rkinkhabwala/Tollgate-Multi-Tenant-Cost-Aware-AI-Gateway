@@ -78,6 +78,15 @@ DEFAULT_ACTIONS: dict[str, Action] = {
 }
 
 
+# spaCy sometimes tags a capitalised message word as PERSON ("Email jane@…",
+# "Call 415-…"). Single-word PERSON hits on these are dropped. Real names are
+# never on this list.
+PERSON_STOPWORDS = frozenset(
+    "email e-mail mail call phone text sms contact hi hello hey dear thanks regards cheers ssn "
+    "deploy key card mobile fax tel ticket invoice order account customer user admin support".split()
+)
+
+
 @dataclass(frozen=True)
 class Finding:
     entity_type: str
@@ -190,7 +199,9 @@ class RedactionEngine:
         findings = [
             Finding(r.entity_type, r.start, r.end, r.score)
             for r in results
-            if actions.get(r.entity_type, "allow") != "allow" and r.end > r.start
+            if actions.get(r.entity_type, "allow") != "allow"
+            and r.end > r.start
+            and not (r.entity_type == "PERSON" and text[r.start : r.end].strip(" .,:;").lower() in PERSON_STOPWORDS)
         ]
         return resolve_overlaps(findings, actions)
 

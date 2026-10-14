@@ -22,9 +22,15 @@ docker compose up -d
 printf 'waiting for gateway'
 for _ in $(seq 1 90); do curl -sf "$BASE/healthz" >/dev/null && break; printf '.'; sleep 2; done; echo
 curl -sf "$BASE/readyz" >/dev/null || fail "gateway not ready"
-printf 'waiting for model pull (ollama-init)'
-until [ "$(docker compose ps -a --format '{{.State}}' ollama-init)" = "exited" ]; do printf '.'; sleep 3; done; echo
-[ "$(docker inspect -f '{{.State.ExitCode}}' "$(docker compose ps -aq ollama-init)")" = "0" ] || fail "model pull failed: docker compose logs ollama-init"
+# Ollama: native on the host by default; with `--profile ollama-docker`, wait for the model pull.
+if [ -n "$(docker compose ps -aq ollama-init 2>/dev/null)" ]; then
+  printf 'waiting for model pull (ollama-init)'
+  until [ "$(docker compose ps -a --format '{{.State}}' ollama-init)" = "exited" ]; do printf '.'; sleep 3; done; echo
+  [ "$(docker inspect -f '{{.State.ExitCode}}' "$(docker compose ps -aq ollama-init)")" = "0" ] || fail "model pull failed: docker compose logs ollama-init"
+else
+  curl -sf "${OLLAMA_HOST_URL:-http://localhost:11434}/api/tags" | grep -q 'qwen2.5:7b' \
+    || fail "native Ollama not reachable or qwen2.5:7b not pulled (ollama serve; ollama pull qwen2.5:7b)"
+fi
 ok "stack is up: $(curl -s "$BASE/readyz")"
 
 say "Seeding 2 tenants x 2 apps (keys are printed once)"
