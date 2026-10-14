@@ -286,7 +286,15 @@ Every text-bearing field the provider will see: `system` and all `messages[].con
 ### 7.2 Detectors
 - **Presidio built-ins:** PERSON, EMAIL_ADDRESS, PHONE_NUMBER, CREDIT_CARD (Luhn-validated), US_SSN, IBAN_CODE, IP_ADDRESS, LOCATION, DATE_TIME (configurable), US_BANK_NUMBER, US_DRIVER_LICENSE, US_PASSPORT, MEDICAL_LICENSE.
 - **Custom recognizers:** API keys and tokens (AWS `AKIA…`, `sk-…`, GitHub `ghp_…`, Slack `xox…`, JWTs, PEM private keys), connection strings with passwords, high-entropy strings ≥ 32 chars adjacent to words like `key`, `secret`, `token`, `password`.
-- **Tenant-defined:** per-app regex list and deny-list terms (e.g. internal project codenames, account-number formats).
+- **Tenant-defined:** per-app regex list (`redaction.custom_patterns`) and deny-list terms (`redaction.deny_terms`, entity `DENY_TERM`; e.g. internal project codenames, account-number formats). These are passed to the analyzer per request (ad hoc), so one app's patterns never apply to another app.
+- **Tollgate recall fixes over Presidio defaults:**
+  - a TLD-agnostic email recognizer (Presidio rejects internal and reserved domains);
+  - a phone recognizer that replaces Presidio's. Presidio under-scores separated NANP numbers and treats the word "number" as phone context, so order numbers become phones. A bare 10-digit run counts only with a phone keyword shortly before it;
+  - a dashed-SSN recognizer;
+  - a Luhn-validated Mastercard 2-series recognizer;
+  - a PERSON stop-list that drops spaCy's single-word hits on message words such as "Email" or "Call".
+- **Overlaps** are resolved by the most protective action (block > mask > tokenize), then score, then span length.
+- **Engine:** Presidio `AnalyzerEngine` with spaCy `en_core_web_lg`, built once per process. The dependency parser is disabled, since Presidio never uses it. Messages are analysed in parallel on a thread pool, never on the event loop.
 
 ### 7.3 Actions (per entity type, set in policy)
 | Action | Effect |
@@ -296,20 +304,27 @@ Every text-bearing field the provider will see: `system` and all `messages[].con
 | `block` | Reject the request with `400 sensitive_data_blocked` (use for secrets/credentials) |
 | `allow` | Leave as is |
 
-Default policy: secrets → `block`; government IDs and card numbers → `mask`; names, emails, phones, addresses → `tokenize`.
+Default policy: secrets → `block`; government IDs and card numbers → `mask`; names, emails, phones, addresses → `tokenize`. Concretely:
+- `block`: SECRET.
+- `mask`: CREDIT_CARD, US_SSN, US_PASSPORT, US_DRIVER_LICENSE, US_BANK_NUMBER, IBAN_CODE, MEDICAL_LICENSE.
+- `tokenize`: PERSON, EMAIL_ADDRESS, PHONE_NUMBER, LOCATION, IP_ADDRESS, DENY_TERM.
+- `allow`: DATE_TIME and any type not listed.
+
+`policy.redaction.entities` overrides per type. A `block` returns `400 sensitive_data_blocked` naming entity *types* only.
 
 ### 7.4 Placeholder vault and re-hydration
-- Placeholders are numbered per request in order of first appearance, and the same value always maps to the same placeholder within the request (`john@acme.com` → `<<EMAIL_1>>` everywhere).
+- Placeholders are numbered per request in order of first appearance, and the same value always maps to the same placeholder within the request (`john@acme.com` → `<<EMAIL_1>>` everywhere; emails compare case-insensitively). Labels are short (`EMAIL`, `PHONE`, `CARD`, `SSN`, `PERSON`, …; custom names ≤ 20 chars), so every placeholder is ≤ 32 chars.
+- Scanned fields include tool-call `arguments` in assistant history. These are parsed as JSON and each string leaf is redacted, so the JSON stays valid.
 - The vault (`placeholder → original`) lives **only in the request context in memory**. Never written to Redis, Postgres, or logs.
 - Add a system instruction when tokenizing: *"Text like <<TYPE_N>> is a placeholder for redacted data. Keep placeholders exactly as written when you need to refer to them."*
-- Re-hydration replaces placeholders in the response text and in tool-call arguments.
+- Re-hydration replaces placeholders in the response text and in tool-call arguments. Inside arguments, values are JSON-escaped.
 - **Streaming:** placeholders can be split across SSE chunks (`<<EMA` … `IL_1>>`). Keep a small tail buffer: hold back any trailing text that could be the start of a placeholder (`<`, `<<`, `<<E…`) until the next chunk resolves it, then flush. Max held: 32 chars.
 
 ### 7.5 Why redaction also saves money
 Because placeholders are normalized, two users asking "draft a follow-up to <<PERSON_1>> about invoice <<ID_1>>" produce the same redacted prompt. The cache stores the *redacted* response, and re-hydration fills in each caller's own values — so redaction raises cache hit rates instead of lowering them.
 
 ### 7.6 Local-tier option
-Policy flag `redact_for_local: false` lets an app skip redaction when the request is routed to the local Ollama tier (data never leaves the host). Default is `true`.
+Policy flag `redact_for_local: false` lets an app skip redaction when the request is routed to the local Ollama tier (data never leaves the host). Default is `true`. Redaction still *runs* (so routing can classify redacted text), and `block` is still enforced. Only the tokenize/mask rewrite is skipped: invoke sends the unredacted copy when the routed tier is `local`.
 
 ---
 
@@ -395,6 +410,7 @@ Track escalation rate per `(task_type, complexity, tier)`. If a cell escalates >
       "PERSON": "tokenize", "EMAIL_ADDRESS": "tokenize", "PHONE_NUMBER": "tokenize"
     },
     "custom_patterns": [{ "name": "ACCOUNT_ID", "regex": "ACC-\\d{8}", "action": "tokenize" }],
+    "deny_terms": [],
     "score_threshold": 0.5
   },
   "cache": {
@@ -416,7 +432,12 @@ Track escalation rate per `(task_type, complexity, tier)`. If a cell escalates >
 }
 ```
 
-Validate with Pydantic models; reject unknown keys; version every change.
+Validate with Pydantic models; reject unknown keys; version every change. Further rules:
+- `custom_patterns[].name` matches `^[A-Z][A-Z0-9_]{0,19}$`, which keeps placeholders ≤ 32 chars;
+- regexes must compile;
+- `min_tier ≤ max_tier`.
+
+`PUT /admin/apps/{aid}/policy` replaces the whole document, bumps `version`, writes `policy.update` (with a per-section before/after diff) to `audit_log`, and invalidates the app's cached auth contexts and policy documents. The change applies to the very next request.
 
 ---
 
@@ -444,6 +465,7 @@ Validate with Pydantic models; reject unknown keys; version every change.
   - `x-tollgate-cache` (`miss|exact|semantic`)
   - `x-tollgate-cost-usd`, `x-tollgate-saved-usd`
   - `x-tollgate-redacted` (count of entities, never values)
+- Streams send headers before cost is known, so `x-tollgate-cost-usd` / `-saved-usd` read `pending`. When the client sets `stream_options.include_usage`, metering runs before the final usage chunk. That chunk carries a Tollgate extension: `"tollgate": {"model", "cache", "cost_usd", "saved_usd", "redacted"}`.
 
 ---
 
@@ -470,7 +492,7 @@ Validate with Pydantic models; reject unknown keys; version every change.
 | GET/PUT | `/admin/apps/{aid}/budget` | tenant_admin |
 | GET | `/admin/usage?tenant_id&app_id&from&to&group_by=day,model,cache_status` | tenant_viewer+ |
 | GET | `/admin/savings?tenant_id&app_id&from&to` | tenant_viewer+ |
-| POST | `/admin/redaction/test` | tenant_admin — dry-run a text against the app's redaction policy |
+| POST | `/admin/redaction/test` | tenant_admin — dry-run `{app_id, text}` against the app's redaction policy → `{blocked, entities: [{type, start, end, score, action, placeholder}], counts, redacted_text}`. No values are echoed separately; blocked spans are shown masked. |
 | POST | `/admin/routing/test` | tenant_admin — show classification + chosen model for a sample request |
 | GET | `/admin/audit` | tenant_admin |
 
@@ -656,6 +678,12 @@ Each phase ends with a runnable `docker compose up`, passing tests, and a short 
 ## 17. Testing strategy
 - **Unit:** each pipeline stage with fake context; redaction recognizers; stream re-hydrator with adversarial chunk splits; routing table + clamps; cost math.
 - **Integration:** full pipeline with `respx`-mocked hosted providers and a real Ollama container.
+- **Test data isolation:** each pytest session:
+  - creates its own database `tollgate_test_<rand>` and migrates it, then drops it at the end;
+  - uses Redis DB 15;
+  - runs its own in-process uvicorn gateway against them.
+  Fixtures purge the tenants they create, and a guard asserts that dev-database row counts are unchanged.
+- **Leak test (runs last):** canary PII is pushed through every path. The session's gateway log, every Redis key and every Postgres table are then scanned, and zero hits are expected.
 - **Isolation suite (must never be skipped):** cross-tenant reads via API, RLS bypass attempts, cache and vector index cross-tenant probes, usage endpoint scoping.
 - **Eval:** `pii_eval.jsonl` (precision/recall per entity) and `router_eval.jsonl` (classification accuracy + cost of routed vs baseline) run in CI; fail the build on regression > 2 points.
 - **Load/chaos:** Phase 6.
@@ -687,3 +715,17 @@ Decisions made while building, recorded so the spec stays the source of truth.
 - **`/v1/usage` response shape** (§12): totals plus a per-day breakdown, scoped to the key's app.
 - **Extra modules** (§13): `services/`, `security/`, `catalog.py`, `redis_keys.py`, `errors.py`.
 - **Routing in Phase 1** is a static `StaticRouteStage` that honours pinning per policy. The classifier-driven router replaces it in Phase 3.
+
+### Housekeeping before Phase 2 (2026-10-14)
+- **Native Ollama by default.** The compose default is `TOLLGATE_OLLAMA_BASE_URL=http://host.docker.internal:11434`. The Ollama containers moved behind the `ollama-docker` compose profile as a fallback. `Settings` no longer reads `.env`, because that file carries container-side compose values.
+- **Test data isolation** (§17): a per-session test database, Redis DB 15, an in-process gateway, tenant purge, and a dev-DB guard.
+- **Streaming `include_usage` extension** (§11): the final chunk carries a `tollgate` object with real cost data.
+
+### Phase 2 (2026-10-14)
+- **`redaction.deny_terms`** added to the §9 schema. §7.2 calls for deny-lists, but the schema had no field. The custom-pattern name limit is now 20 chars, to keep placeholders ≤ 32.
+- **Recognizer additions and replacements** (§7.2): TLD-agnostic email, a replacement for Presidio's phone recognizer, dashed SSN, Mastercard 2-series, and the PERSON stop-list. Each one was driven by eval or demo findings.
+- **Overlap rule:** the most protective action wins, so a secret that spaCy also tags as PERSON is still blocked.
+- **`redact_for_local: false`** still enforces `block` (safe default; §7.6 was silent on it).
+- **Stage placement:** `rehydrate` runs in the pre-response stage list, directly after `invoke`, because for streams it must wrap the stream before the first byte. §3.1's diagram puts it after cache write; it still runs before meter.
+- **Default actions** are spelled out per type (§7.3). DATE_TIME defaults to `allow`.
+- **Overhead vs §3.3.** With the parser disabled and 4-thread parallel analysis, redaction measures p50 57 ms / p95 66 ms on ~1k-token requests and p50 307 ms / p95 362 ms on ~8k-token requests (M1 Pro). That exceeds the 40 / 120 ms overhead targets for larger requests. Options to revisit in Phase 6: a smaller spaCy model for long requests, incremental analysis of unchanged history (hash cache), or a dedicated redaction worker pool.

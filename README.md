@@ -2,16 +2,14 @@
 
 A multi-tenant, cost-aware, **OpenAI-compatible AI gateway**. Apps change only `base_url` and `api_key`. Tollgate authenticates the app, enforces its policy and rate limits, calls the model, and records exactly what every tenant spent and saved.
 
-The full design is in [spec.md](spec.md). This repo is at **Phase 1** (spec §16): skeleton, tenancy, auth and passthrough.
+The full design is in [spec.md](spec.md). This repo is at **Phase 2** (spec §16).
 
-| Phase 1 delivers | Arrives later |
+| Delivered | Arrives later |
 |---|---|
-| Compose stack (gateway, Postgres 16, Redis Stack, Ollama with a one-shot model pull) | Redaction and re-hydration (Phase 2) |
-| Schema with Postgres RLS on every tenant table, monthly `usage_events` partitions, `usage_daily` rollup | Classifier routing, hosted providers, fallback (Phase 3) |
-| Admin API (local users, Argon2id, JWT + rotating refresh) for tenants, apps and keys, with audit log | Caching, budgets, optimization (Phase 4) |
-| Pipeline: authn → authz → ratelimit → route (static) → invoke → meter | Admin UI, Prometheus, OTel (Phase 5) |
-| `/v1/chat/completions` (JSON + SSE), `/v1/models`, `/v1/usage` | Load and chaos testing (Phase 6) |
-| Usage metering: Redis Stream → batch writer → Postgres, with actual and baseline cost | |
+| **Phase 1:** compose stack, Postgres RLS on every tenant table, partitioned usage ledger, admin API (tenants, apps, keys, users) with audit log, OpenAI-compatible `/v1/chat/completions` (JSON + SSE), `/v1/models`, `/v1/usage`, rate limiting, cost and savings metering | Classifier routing, hosted providers, fallback (Phase 3) |
+| **Phase 2:** PII and secret redaction (Presidio + spaCy + custom recognizers), tokenize / mask / block / allow, in-memory vault, non-streaming and streaming re-hydration, `GET/PUT` app policy, `/admin/redaction/test`, PII eval gate, canary leak test | Caching, budgets, optimization (Phase 4) |
+| | Admin UI, Prometheus, OTel (Phase 5) |
+| | Load and chaos testing (Phase 6) |
 
 ## Quick start
 
@@ -77,10 +75,14 @@ Every response carries these headers (spec §11):
 | `x-tollgate-cache` | `miss` or `hit` (always `miss` in Phase 1) |
 | `x-tollgate-cost-usd` | Actual cost of this call |
 | `x-tollgate-saved-usd` | Baseline-model cost minus actual cost |
-| `x-tollgate-redacted` | Number of redacted entities (0 in Phase 1) |
+| `x-tollgate-redacted` | Number of redacted entities (a count; never values) |
 | `x-ratelimit-*` | Remaining rate-limit budget |
 
-On streams, cost and savings read `pending` because the headers are sent before the final token count is known. The ledger and `/v1/usage` hold the real values.
+On streams, cost and savings read `pending` because the headers are sent before the final token count is known. With `stream_options: {"include_usage": true}`, the final usage chunk carries the real numbers in a `tollgate` extension object, which the OpenAI SDK exposes as `chunk.model_extra["tollgate"]`:
+
+```json
+{"choices": [], "usage": {...}, "tollgate": {"model": "ollama/qwen2.5:7b", "cache": "miss", "cost_usd": 0.0, "saved_usd": 0.000423, "redacted": 3}}
+```
 
 ### Call it with the OpenAI SDK
 
@@ -127,10 +129,68 @@ curl -s -X DELETE localhost:8000/admin/keys/$KID -H "$H"                        
 
 Every mutation writes to `audit_log`. Five failed logins lock an account for 15 minutes. `/admin/*` is rate-limited per IP.
 
+## Sensitive-data redaction (Phase 2)
+
+Every text the model will see is scanned before anything leaves the gateway:
+- system and developer prompts, and the *whole* history;
+- multi-part content;
+- tool results;
+- tool-call arguments in history (parsed as JSON, so the result stays valid JSON).
+
+Findings are replaced according to the app policy:
+
+| Action | Effect | Default for |
+|---|---|---|
+| `tokenize` | `<<EMAIL_1>>`; the original is kept in the per-request in-memory vault and re-hydrated in the response | PERSON, EMAIL_ADDRESS, PHONE_NUMBER, LOCATION, IP_ADDRESS, DENY_TERM |
+| `mask` | `<<CARD>>`, never re-hydrated | CREDIT_CARD, US_SSN, US_PASSPORT, US_DRIVER_LICENSE, US_BANK_NUMBER, IBAN_CODE, MEDICAL_LICENSE |
+| `block` | `400 sensitive_data_blocked` (the message names entity types only) | SECRET: AWS/OpenAI/Stripe/GitHub/Slack/Google keys, JWTs, PEM private keys, connection strings with passwords, password assignments, high-entropy tokens near key/secret/token/password |
+| `allow` | untouched | DATE_TIME and anything not listed |
+
+**How it behaves**
+- Numbering is stable within a request: the same value always gets the same placeholder. When anything is tokenized, a system instruction tells the model to keep placeholders verbatim.
+- Responses are re-hydrated, including tool-call arguments (JSON-escaped).
+- Streams use a 32-char tail buffer, so a placeholder split across chunks (the model really emits `<<`, `EMAIL`, `_`, `1`, `>>`) reaches the client as the real value.
+- Only placeholders from *this* request's vault are replaced.
+- The vault never touches Redis, Postgres or logs. Usage events record `pii_entities` as counts by type.
+
+**Policy settings** (`GET/PUT /admin/apps/{aid}/policy`, validated against the full spec §9 schema):
+- `redaction.entities`: per-type action.
+- `redaction.custom_patterns`: `[{name, regex, action}]`, applied per app only.
+- `redaction.deny_terms`: literal terms such as codenames.
+- `redaction.score_threshold`.
+- `redaction.redact_for_local`: when `false`, requests routed to the local tier are sent unredacted. `block` still applies.
+
+Each PUT bumps the policy version, is audited, and applies to the very next request.
+
+```bash
+curl -s localhost:8000/admin/redaction/test -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"app_id":"…","text":"Email jane@corp.example or call 415-555-0163. Key AK''IAIOSFODNN7EXAMPLE"}'
+# → {"blocked": true, "redacted_text": "Email <<EMAIL_1>> or call <<PHONE_1>>. Key <<SECRET>>", "entities": [...], "counts": {...}}
+```
+
+**Quality and cost** (`uv run python -m scripts.eval_pii`, `uv run python -m scripts.bench_redaction`; M1 Pro):
+
+| Entity | Recall | Precision | Target |
+|---|---|---|---|
+| EMAIL_ADDRESS | 100% | 100% | ≥ 95% |
+| PHONE_NUMBER | 100% | 100% | ≥ 95% |
+| CREDIT_CARD | 100% | 100% | ≥ 95% |
+| US_SSN | 100% | 100% | ≥ 95% |
+| SECRET | 100% | 100% | ≥ 95% |
+| PERSON | 98.2% | 100% | ≥ 85% |
+
+The scores above are on `data/pii_eval.jsonl`: 279 synthetic rows, including near-misses (order numbers, invalid-Luhn cards, invalid SSN ranges) and code/log snippets. The spaCy dependency parser is disabled and messages are analysed in parallel on a 4-thread pool, which gives this redaction latency:
+
+| Request | p50 | p95 |
+|---|---|---|
+| ~1k tokens (6 messages, ~19 entities) | 57 ms | 66 ms |
+| ~8k tokens (34 messages, ~129 entities) | 307 ms | 362 ms |
+
 ## Demo
 
 ```bash
-scripts/demo_phase1.sh
+scripts/demo_phase1.sh   # tenancy, auth, SDK usage, isolation, revocation < 1 s
+scripts/demo_phase2.sh   # eval gate, dry run, blocking, split-placeholder streaming, live policy change, leak scan
 ```
 
 The script brings the stack up, seeds it, and then demonstrates the Phase 1 "done when" criteria:
@@ -157,9 +217,11 @@ Fixtures purge every tenant they create, and a teardown guard fails the run if r
 
 | Suite | Needs | What it covers |
 |---|---|---|
-| `tests/unit` | nothing | One file per stage (authn, authz, ratelimit, route + invoke, meter, runner). Also: Ollama adapter (respx), key/password/JWT primitives, policy schema, cost math, the logging filter, and the OpenAI SDK against the in-process app (JSON, SSE, errors, 413, 429). |
+| `tests/unit` | nothing | One file per stage (authn, authz, ratelimit, route + invoke, meter, runner). Recognizers, vault and the redact/rehydrate stages. Streaming re-hydrator fuzz (every split point, char-by-char, 500 random chunkings). OpenAI SDK against the in-process app, with an echo model proving upstream sees only placeholders. Also the Ollama adapter (respx), security primitives, policy schema, cost math and the logging filter. |
+| `tests/eval` | nothing | PII eval gate: recall targets per entity on `data/pii_eval.jsonl` |
 | `tests/isolation` | compose stack | RLS bypass attempts as the app DB role. Cross-tenant reads and writes through the data and admin APIs. Forged keys. Redis key prefixing. |
-| `tests/integration` | compose stack (+ Ollama) | OpenAI SDK against the real gateway from two tenants. Revocation in under 1 s. Key rotation, scopes, IP allowlist, suspension, audit, lockout, refresh rotation. |
+| `tests/integration` | compose stack (+ Ollama) | OpenAI SDK against the real gateway from two tenants. Revocation in under 1 s. Key rotation, scopes, IP allowlist, suspension, audit, lockout, refresh rotation. Policy GET/PUT validation, versioning and immediate effect; redaction dry run; `pii_entities` on the ledger. |
+| `tests/leak` | compose stack + Ollama | Runs **last**. Pushes canary PII through every path, then scans the session's gateway log, every Redis key and every Postgres table. Expects zero hits. |
 
 The isolation and integration suites **fail rather than skip** when Postgres or Redis is down (spec §17: the isolation suite must never be skipped). They find the infrastructure through the usual `TOLLGATE_DATABASE_URL_*`, `TOLLGATE_REDIS_URL` and `TOLLGATE_OLLAMA_BASE_URL` variables.
 
@@ -170,9 +232,12 @@ Client ──Bearer tg_live_…──▶ /v1/chat/completions
   authn      sys:auth:{prefix8} (Redis, 60 s) ─miss→ Postgres (system role) · constant-time SHA-256 compare
   authz      tenant/app active · IP allowlist · scope · allowed_models · max_input_tokens
   ratelimit  Lua token buckets t:{tenant}:a:{app}:rl:rpm|tpm (TPM pre-charged, reconciled after)
-  budget · redact · cache · optimize · classify     ← pass-through placeholders until Phases 2-4
+  budget                                            ← pass-through until Phase 4
+  redact     Presidio + spaCy (thread pool) → tokenize/mask/block; vault in memory only
+  cache · optimize · classify                       ← pass-through until Phases 3-4
   route      static: TOLLGATE_DEFAULT_MODEL (pinning per policy)
   invoke     Ollama /api/chat (stream pre-fetches first chunk so errors surface before any SSE byte)
+  rehydrate  placeholders → values (JSON + SSE with 32-char tail buffer)
   meter      cost + baseline from catalog → Redis counters + XADD sys:usage_events
                                               └─▶ usage writer (1 s batches) ─▶ usage_events (partitioned)
 ```
@@ -189,6 +254,6 @@ Client ──Bearer tg_live_…──▶ /v1/chat/completions
 
 ## Layout
 
-The repo follows spec §13. Modules for later phases exist as documented stubs: the pass-through stages in [gateway/pipeline/](gateway/pipeline/), the [redaction](gateway/redaction/) and [routing](gateway/routing/) packages, the hosted-provider adapters in [providers/](gateway/providers/), and the admin policy, budget, usage and tools routers.
+The repo follows spec §13. Modules for later phases exist as documented stubs: the pass-through stages in [gateway/pipeline/](gateway/pipeline/), the [routing](gateway/routing/) package, the hosted-provider adapters in [providers/](gateway/providers/), and the admin budget and usage routers.
 
 Model prices for hosted models in [config/models.yaml](config/models.yaml) are **placeholders** (spec §8.1). Fill in current provider pricing before relying on the savings numbers.
