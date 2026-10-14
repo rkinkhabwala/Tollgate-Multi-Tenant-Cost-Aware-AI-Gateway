@@ -15,7 +15,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="TOLLGATE_", env_file=".env", extra="ignore")
+    # No env_file: `.env` holds docker-compose interpolation values (e.g. the Ollama URL
+    # *as seen from the container*). The container receives them via compose's
+    # `environment:`; host-side tools use these defaults or real env vars.
+    model_config = SettingsConfigDict(env_prefix="TOLLGATE_", extra="ignore")
 
     env: str = "dev"
     log_level: str = "INFO"
