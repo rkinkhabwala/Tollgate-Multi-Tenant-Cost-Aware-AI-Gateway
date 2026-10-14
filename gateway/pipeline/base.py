@@ -51,7 +51,10 @@ class Pipeline:
         return ctx
 
     async def finish(self, ctx: RequestContext) -> RequestContext:
-        """Run post-response stages (called directly by the SSE path after draining)."""
+        """Run post-response stages once (called directly by the SSE path after draining)."""
+        if ctx.finished:
+            return ctx
+        ctx.finished = True
         for stage in self.post_stages:
             ctx = await self._run_stage(stage, ctx)
         return ctx

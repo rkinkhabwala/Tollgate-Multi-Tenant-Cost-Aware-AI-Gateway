@@ -109,6 +109,10 @@ class ChatChunk(BaseModel):
     model: str
     choices: list[ChunkChoice] = Field(default_factory=list)
     usage: Usage | None = None
+    # Tollgate extension on the final `include_usage` chunk: routed model, cache
+    # status, cost/savings, redaction count. OpenAI SDKs keep unknown fields, so
+    # clients can read it via `chunk.model_extra["tollgate"]`.
+    tollgate: dict[str, Any] | None = None
 
 
 class ProviderError(Exception):

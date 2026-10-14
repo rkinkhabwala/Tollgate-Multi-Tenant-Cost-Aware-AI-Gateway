@@ -98,6 +98,7 @@ class RequestContext:
     started_at: float = field(default_factory=time.perf_counter)
     stage_ms: dict[str, float] = field(default_factory=dict)
     metered: bool = False
+    finished: bool = False  # post stages have run (guards against double-running)
 
     @property
     def saved_usd(self) -> Decimal:

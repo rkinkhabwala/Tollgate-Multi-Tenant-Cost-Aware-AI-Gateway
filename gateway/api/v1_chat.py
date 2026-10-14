@@ -5,9 +5,14 @@ chat pipeline, and serialises the result. All policy lives in the stages.
 
 * Non-streaming returns a `chat.completion` JSON body with the `x-tollgate-*` headers.
 * Streaming returns `text/event-stream`: `data: {chunk}` lines, then
-  `data: [DONE]`. If the client sets `stream_options.include_usage`, a final chunk
-  with empty `choices` carries `usage`, as OpenAI does. Post stages (meter) run
-  once the stream has drained, or when the client disconnects.
+  `data: [DONE]`. Post stages (meter) run once the stream has drained, or when the
+  client disconnects.
+* With `stream_options.include_usage`, metering runs *before* the final chunk so
+  that chunk can carry real numbers. As in OpenAI, it has empty `choices` and a
+  `usage` object, plus a Tollgate extension:
+  `"tollgate": {"model", "cache", "cost_usd", "saved_usd", "redacted"}`. This is the
+  streaming counterpart of the `x-tollgate-*` headers, which go out before cost is
+  known.
 """
 
 from __future__ import annotations
@@ -75,6 +80,17 @@ async def chat_completions(request: Request) -> Response:
     )
 
 
+def tollgate_summary(ctx: RequestContext) -> dict[str, object]:
+    """Body-level equivalent of the `x-tollgate-*` headers (for streams)."""
+    return {
+        "model": ctx.route.model_id if ctx.route else None,
+        "cache": ctx.cache_status,
+        "cost_usd": float(ctx.cost_usd),
+        "saved_usd": float(ctx.saved_usd),
+        "redacted": sum(ctx.pii_counts.values()),
+    }
+
+
 def _data(payload: str) -> bytes:
     return f"data: {payload}\n\n".encode()
 
@@ -92,7 +108,10 @@ async def _sse(ctx: RequestContext, svc: Services) -> AsyncIterator[bytes]:
             if chunk.choices:
                 yield _data(chunk.model_dump_json(exclude_none=True))
         if include_usage and usage is not None and last is not None:
-            final = ChatChunk(id=last.id, created=last.created, model=last.model, choices=[], usage=usage)
+            ctx = await svc.chat_pipeline.finish(ctx)  # meter first: the final chunk reports real cost
+            final = ChatChunk(
+                id=last.id, created=last.created, model=last.model, choices=[], usage=usage, tollgate=tollgate_summary(ctx)
+            )
             yield _data(final.model_dump_json())
         yield _data("[DONE]")
     except ProviderError as exc:

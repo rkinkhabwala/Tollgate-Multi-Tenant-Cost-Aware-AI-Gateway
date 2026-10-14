@@ -97,7 +97,29 @@ async def test_sdk_streaming_with_include_usage(harness) -> None:
     assert text.strip() == "Hello from the fake model"
     assert finish == "stop"
     assert usage is not None and usage.completion_tokens == 6
-    assert len(await redis.xrange(STREAM)) == 1  # metered after drain
+    assert len(await redis.xrange(STREAM)) == 1  # metered exactly once
+
+
+async def test_include_usage_chunk_carries_tollgate_extension(harness) -> None:
+    client, *_ = harness
+    stream = await client.chat.completions.create(
+        model="auto", messages=[{"role": "user", "content": "hi"}], stream=True, stream_options={"include_usage": True}
+    )
+    final = [c async for c in stream][-1]
+    assert final.choices == [] and final.usage is not None
+    ext = final.model_extra["tollgate"]
+    assert ext["model"] == "ollama/qwen2.5:7b" and ext["cache"] == "miss" and ext["redacted"] == 0
+    assert ext["cost_usd"] == 0.0 and ext["saved_usd"] > 0  # real numbers, not "pending"
+
+
+async def test_stream_without_include_usage_has_no_usage_chunk(harness) -> None:
+    _, http, key, _ = harness
+    r = await http.post(
+        "/v1/chat/completions",
+        headers={"authorization": f"Bearer {key}"},
+        json={"model": "auto", "stream": True, "messages": [{"role": "user", "content": "hi"}]},
+    )
+    assert '"usage"' not in r.text and '"tollgate"' not in r.text
 
 
 async def test_sse_wire_format_ends_with_done(harness) -> None:

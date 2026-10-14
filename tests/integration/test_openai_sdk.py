@@ -65,11 +65,15 @@ async def test_two_tenants_use_sdk_and_see_only_their_own_usage(gateway: httpx.A
         stream = await client_b.chat.completions.create(
             model="auto", messages=MSG, max_tokens=5, temperature=0, stream=True, stream_options={"include_usage": True}
         )
-        text, final_usage = "", None
+        text, final_usage, ext = "", None, None
         async for chunk in stream:
             final_usage = chunk.usage or final_usage
+            ext = (chunk.model_extra or {}).get("tollgate") or ext
             text += "".join(c.delta.content or "" for c in chunk.choices)
         assert text and final_usage is not None and final_usage.completion_tokens > 0
+        # include_usage → the final chunk carries real cost data (not "pending").
+        assert ext["model"] == "ollama/qwen2.5:7b" and ext["cache"] == "miss"
+        assert ext["cost_usd"] == 0.0 and ext["saved_usd"] > 0
 
     ua = await wait_for_requests(gateway, a.key, 1)
     ub = await wait_for_requests(gateway, b.key, 2)
