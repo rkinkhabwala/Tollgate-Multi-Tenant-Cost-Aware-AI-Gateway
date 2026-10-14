@@ -120,8 +120,9 @@ async def bench(engine: RedactionEngine, target: int, runs: int, warm: bool = Fa
     }
 
 
-async def main_async(runs: int) -> None:
-    engine = RedactionEngine()
+async def main_async(runs: int, workers: int, model: str) -> None:
+    engine = RedactionEngine(workers=workers, model=model)
+    print(f"model={model} workers={workers}")
     print(f"redact stage latency, {runs} runs each (after 3 warm-up runs)\n")
     print(f"{'request':<10}{'~tokens':>9}{'msgs':>6}{'PII/req':>9}{'p50 ms':>9}{'p95 ms':>9}{'max ms':>9}")
     for label, target, warm in (("cold 1k", 1000, False), ("cold 8k", 8000, False), ("warm 8k", 8000, True)):
@@ -133,7 +134,10 @@ async def main_async(runs: int) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=int, default=50)
-    asyncio.run(main_async(parser.parse_args().runs))
+    parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--model", default="en_core_web_lg")
+    args = parser.parse_args()
+    asyncio.run(main_async(args.runs, args.workers, args.model))
 
 
 if __name__ == "__main__":

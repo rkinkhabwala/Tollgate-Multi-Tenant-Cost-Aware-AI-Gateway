@@ -255,8 +255,16 @@ class RedactionEngine:
     # --- passes ----------------------------------------------------------------
     def _pattern_findings(self, text: str, policy: RedactionPolicy) -> list[Finding]:
         ad_hoc = build_custom_recognizers(tuple((p.name, p.regex) for p in policy.custom_patterns), tuple(policy.deny_terms))
+        # Only run recognizers whose entity type has an action other than `allow`:
+        # Presidio otherwise runs every recognizer (URL, crypto, ...) and we'd discard
+        # the results. This roughly halves the (GIL-bound) pattern pass.
+        entities = sorted(t for t, a in effective_actions(policy).items() if a != "allow")
         results: list[RecognizerResult] = self._patterns.analyze(
-            text=text, language="en", score_threshold=policy.score_threshold, ad_hoc_recognizers=list(ad_hoc) or None
+            text=text,
+            language="en",
+            entities=entities,
+            score_threshold=policy.score_threshold,
+            ad_hoc_recognizers=list(ad_hoc) or None,
         )
         return [Finding(r.entity_type, r.start, r.end, r.score) for r in results]
 
