@@ -728,4 +728,23 @@ Decisions made while building, recorded so the spec stays the source of truth.
 - **`redact_for_local: false`** still enforces `block` (safe default; §7.6 was silent on it).
 - **Stage placement:** `rehydrate` runs in the pre-response stage list, directly after `invoke`, because for streams it must wrap the stream before the first byte. §3.1's diagram puts it after cache write; it still runs before meter.
 - **Default actions** are spelled out per type (§7.3). DATE_TIME defaults to `allow`.
-- **Overhead vs §3.3.** With the parser disabled and 4-thread parallel analysis, redaction measures p50 57 ms / p95 66 ms on ~1k-token requests and p50 307 ms / p95 362 ms on ~8k-token requests (M1 Pro). That exceeds the 40 / 120 ms overhead targets for larger requests. Options to revisit in Phase 6: a smaller spaCy model for long requests, incremental analysis of unchanged history (hash cache), or a dedicated redaction worker pool.
+- **Overhead vs §3.3.** At the end of Phase 2, redaction measured p50 57 / p95 66 ms (~1k tokens) and p50 307 / p95 362 ms (~8k tokens), over budget. Addressed in Phase 2.5 below.
+
+### Phase 2.5 — redaction latency (2026-10-14)
+- **Per-message findings cache** (§7): key = `HMAC-SHA256(per-process secret, tenant | app | policy_version | text)`; value = `(entity_type, start, end, score)` tuples only. It is an in-process LRU bounded by entries (20k) and findings held (500k), and it is never put in Redis, so no data derived from prompts leaves the process. Cached re-application is proven byte-identical to fresh analysis (placeholders, vault numbering, counts).
+- **Two-pass analysis** (§7.2):
+  1. Presidio pattern recognizers run on the full text over a tokenizer-only spaCy pipeline (lemma = lowercase, so context boosts still work), restricted to entity types whose action isn't `allow`.
+  2. spaCy NER (`en_core_web_lg`'s `ner` component only) runs on natural-language segments. Code fences, JSON payloads, base64 runs and stack traces are skipped; prose-like JSON string values and code comments are kept.
+
+  The trade-off: a name written inside code that isn't a comment or a prose string is not seen by NER. Pattern recognizers still cover secrets, emails, phones and the other pattern types there.
+- **Parallelism:** thread-pool NER scales (GIL released). A process pool was measured and not adopted.
+- **Model:** `en_core_web_md` was rejected (PERSON recall 93.7% < 95%). The model and cache bounds are settings.
+- **Measured (M1 Pro, p50/p95):**
+
+  | Scenario | Before | After |
+  |---|---|---|
+  | cold 1k | 58/65 ms | 28/30 ms |
+  | cold 8k | 310/324 ms | 129/143 ms |
+  | warm 8k (history plus one new ~200-token message) | 309/345 ms | 11/14 ms |
+
+  The warm multi-turn target (p95 ≤ 40 ms) is met. Cold 8k still exceeds §3.3's 120 ms p95 on its own.

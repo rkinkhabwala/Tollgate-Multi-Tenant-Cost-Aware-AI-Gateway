@@ -179,12 +179,23 @@ curl -s localhost:8000/admin/redaction/test -H "Authorization: Bearer $ADMIN_TOK
 | SECRET | 100% | 100% | ≥ 95% |
 | PERSON | 98.2% | 100% | ≥ 85% |
 
-The scores above are on `data/pii_eval.jsonl`: 279 synthetic rows, including near-misses (order numbers, invalid-Luhn cards, invalid SSN ranges) and code/log snippets. The spaCy dependency parser is disabled and messages are analysed in parallel on a 4-thread pool, which gives this redaction latency:
+The scores above are on `data/pii_eval.jsonl`: 309 synthetic rows, including near-misses (order numbers, invalid-Luhn cards, invalid SSN ranges), code/log snippets and structured samples (JSON tool results, code comments, YAML).
 
-| Request | p50 | p95 |
+**Redaction latency** (`scripts/bench_redaction.py`, M1 Pro, 4 worker threads). Phase 2.5 brought it down:
+
+| Scenario | Phase 2 p50 / p95 | Phase 2.5 p50 / p95 |
 |---|---|---|
-| ~1k tokens (6 messages, ~19 entities) | 57 ms | 66 ms |
-| ~8k tokens (34 messages, ~129 entities) | 307 ms | 362 ms |
+| cold ~1k tokens (6 messages, ~20 entities) | 58 / 65 ms | **28 / 30 ms** |
+| cold ~8k tokens (34 messages, ~127 entities) | 310 / 324 ms | **129 / 143 ms** |
+| warm ~8k tokens (history seen before + one new ~200-token message) | 309 / 345 ms | **11 / 14 ms** |
+
+What changed:
+1. **A per-message findings cache.** The key is an HMAC of tenant, app, policy version and text, and the value holds offsets and types only. It lives in an in-process LRU and is never stored in Redis. Re-sent history is never re-analysed, and the result is byte-identical to a fresh analysis.
+2. **Two passes.** Pattern recognizers run on the full text using a tokenizer-only pipeline. spaCy NER runs only on natural-language segments (it skips code fences, JSON, base64 and stack traces, but keeps prose-like JSON values and code comments), using `en_core_web_lg` reduced to its `ner` component: identical entities at ~45% of the cost.
+3. **NER spread across the thread pool.** spaCy releases the GIL, so threads scale: 283 → 89 ms with 1 → 4 threads. A process pool gave under 10% more and was not adopted.
+4. **Only actionable pattern recognizers run.** This cut the GIL-bound pattern pass from 72 to 40 ms.
+
+`en_core_web_md` was evaluated and rejected: PERSON recall 93.7% vs 97.5%, and it was not faster.
 
 ## Demo
 
