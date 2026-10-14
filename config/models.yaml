@@ -1,0 +1,65 @@
+# Tollgate model catalog (spec §8.1). Loaded into the `models` table at gateway startup.
+#
+# !!! PRICES FOR HOSTED MODELS ARE PLACEHOLDERS (spec §8.1) !!!
+# Fill in current provider pricing before go-live. They exist in Phase 1 only so
+# that `baseline_cost_usd` (what the app's premium baseline model would have cost)
+# is non-zero and savings are demonstrable. Hosted adapters arrive in Phase 3.
+# OpenAI rows are omitted until concrete model names are chosen ("openai/<small-model>").
+
+models:
+  - id: ollama/qwen2.5:7b
+    provider: ollama
+    provider_model: qwen2.5:7b
+    tier: local
+    input_usd_per_mtok: 0
+    output_usd_per_mtok: 0
+    context_window: 32768
+    supports_tools: true
+    supports_json: true
+
+  - id: ollama/nomic-embed-text
+    provider: ollama
+    provider_model: nomic-embed-text
+    tier: local
+    input_usd_per_mtok: 0
+    output_usd_per_mtok: 0
+    context_window: 8192
+    supports_tools: false
+    supports_json: false
+
+  - id: anthropic/claude-haiku-5-5
+    provider: anthropic
+    provider_model: claude-haiku-5-5
+    tier: small
+    input_usd_per_mtok: 1.00      # PLACEHOLDER
+    output_usd_per_mtok: 5.00     # PLACEHOLDER
+    context_window: 200000
+    supports_tools: true
+    supports_json: true
+
+  - id: anthropic/claude-sonnet-5-5
+    provider: anthropic
+    provider_model: claude-sonnet-5-5
+    tier: medium
+    input_usd_per_mtok: 3.00      # PLACEHOLDER
+    output_usd_per_mtok: 15.00    # PLACEHOLDER
+    context_window: 200000
+    supports_tools: true
+    supports_json: true
+
+  - id: anthropic/claude-opus-5-5
+    provider: anthropic
+    provider_model: claude-opus-5-5
+    tier: large
+    input_usd_per_mtok: 15.00     # PLACEHOLDER
+    output_usd_per_mtok: 75.00    # PLACEHOLDER
+    context_window: 200000
+    supports_tools: true
+    supports_json: true
+
+tiers:
+  local:  [ollama/qwen2.5:7b]
+  small:  [anthropic/claude-haiku-5-5]
+  medium: [anthropic/claude-sonnet-5-5]
+  large:  [anthropic/claude-opus-5-5]
+escalation_order: [local, small, medium, large]

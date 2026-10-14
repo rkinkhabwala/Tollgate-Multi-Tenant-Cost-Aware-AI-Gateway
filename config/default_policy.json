@@ -1,0 +1,39 @@
+{
+  "routing": {
+    "mode": "auto",
+    "allow_pinning": false,
+    "allowed_models": ["ollama/qwen2.5:7b", "anthropic/claude-haiku-5-5", "anthropic/claude-sonnet-5-5"],
+    "min_tier": "local",
+    "max_tier": "medium",
+    "min_confidence": 0.6,
+    "max_escalations": 1,
+    "soft_limit_max_tier": "small",
+    "table_overrides": { "code": { "low": "small", "medium": "medium", "high": "medium" } }
+  },
+  "redaction": {
+    "enabled": true,
+    "redact_for_local": true,
+    "entities": {
+      "SECRET": "block", "CREDIT_CARD": "mask", "US_SSN": "mask",
+      "PERSON": "tokenize", "EMAIL_ADDRESS": "tokenize", "PHONE_NUMBER": "tokenize"
+    },
+    "custom_patterns": [{ "name": "ACCOUNT_ID", "regex": "ACC-\\d{8}", "action": "tokenize" }],
+    "score_threshold": 0.5
+  },
+  "cache": {
+    "exact": true,
+    "semantic": true,
+    "semantic_threshold": 0.95,
+    "ttl_seconds": 86400,
+    "scope": "app",
+    "skip_if_temperature_above": 0.7
+  },
+  "optimize": {
+    "max_history_turns": 12,
+    "summarize_history_over_tokens": 6000,
+    "default_max_tokens": 1024,
+    "dedupe_context_chunks": true
+  },
+  "limits": { "rpm": 600, "tpm": 200000, "max_input_tokens": 32000 },
+  "logging": { "log_prompts": false, "retention_days": 30 }
+}

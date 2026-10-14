@@ -23,7 +23,9 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
-    pass
+    # Fetch server-generated values (ids, timestamps, status defaults) via RETURNING
+    # on insert, so objects stay usable after their session closes.
+    __mapper_args__ = {"eager_defaults": True}
 
 
 def _uuid_pk() -> Mapped[uuid.UUID]:
