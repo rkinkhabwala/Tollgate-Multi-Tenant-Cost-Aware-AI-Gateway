@@ -41,6 +41,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import make_url
 
 from gateway.db.session import Database
+from gateway.redaction.engine import RedactionEngine
 from gateway.redis_keys import auth_cache_key
 from gateway.settings import REPO_ROOT, Settings, get_settings
 
@@ -70,6 +71,15 @@ async def _dev_counts(dev: Settings) -> dict[str, int]:
         return {t: await conn.fetchval(f"SELECT count(*) FROM {t}") for t in DEV_GUARD_TABLES}
     finally:
         await conn.close()
+
+
+# --- redaction engine (no infrastructure needed) ------------------------------------------
+@pytest.fixture(scope="session")
+def engine() -> RedactionEngine:
+    """Presidio + spaCy en_core_web_lg, loaded once per session (≈ 1–7 s)."""
+    eng = RedactionEngine(workers=2)
+    yield eng
+    eng.close()
 
 
 # --- session infrastructure ------------------------------------------------------

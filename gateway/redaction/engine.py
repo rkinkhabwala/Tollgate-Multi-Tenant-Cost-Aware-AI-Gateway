@@ -40,6 +40,7 @@ from gateway.redaction.recognizers.custom_regex import DENY_TERM, build_custom_r
 from gateway.redaction.recognizers.pii import (
     BarePhoneRecognizer,
     EmailPatternRecognizer,
+    MastercardSeries2Recognizer,
     PhonePatternRecognizer,
     SsnPatternRecognizer,
 )
@@ -156,6 +157,7 @@ class RedactionEngine:
             EmailPatternRecognizer(),
             PhonePatternRecognizer(),
             BarePhoneRecognizer(),
+            MastercardSeries2Recognizer(),
             SsnPatternRecognizer(),
             SecretPatternRecognizer(),
             KeywordSecretRecognizer(),

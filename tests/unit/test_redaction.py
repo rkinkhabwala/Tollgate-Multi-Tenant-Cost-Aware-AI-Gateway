@@ -32,6 +32,7 @@ def types(engine: RedactionEngine, text: str, policy: RedactionPolicy | None = N
         "DATABASE_URL=postgres://admin:s3cr3tPass@db.internal:5432/app",
         "client_secret: Zq8xK2mP9vL4nR7tW1yB5cF3hJ6dG0sA2eU8iO4pQ",
         'password = "Tr0ub4dor&3"',
+        'db_password = "UtjOjb%izkH"',
         "key tg_live_ab12cd34_" + "A1b2C3d4" * 4,
     ],
 )
@@ -53,6 +54,7 @@ def test_low_entropy_long_word_near_keyword_is_not_secret(engine: RedactionEngin
         ("call me at 4155550132 tonight", "PHONE_NUMBER"),
         ("SSN 536-22-8187", "US_SSN"),
         ("card 4111 1111 1111 1111", "CREDIT_CARD"),
+        ("card 2223-0031-2200-3222", "CREDIT_CARD"),  # Mastercard 2-series
         ("Maria Gonzalez approved the refund.", "PERSON"),
     ],
 )

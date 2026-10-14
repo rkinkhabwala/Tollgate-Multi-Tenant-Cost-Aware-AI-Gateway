@@ -1,0 +1,279 @@
+{"id": "pii-001", "category": "email", "text": "Update the billing contact to tomasz.petrova@contoso.example and confirm.", "entities": [{"type": "EMAIL_ADDRESS", "value": "tomasz.petrova@contoso.example"}]}
+{"id": "pii-002", "category": "email", "text": "Forwarding this thread to iyer.grace@mail.example.com for review.", "entities": [{"type": "EMAIL_ADDRESS", "value": "iyer.grace@mail.example.com"}]}
+{"id": "pii-003", "category": "email", "text": "I can't log in with mateo.gonzalez@northwind.example, can you reset it?", "entities": [{"type": "EMAIL_ADDRESS", "value": "mateo.gonzalez@northwind.example"}]}
+{"id": "pii-004", "category": "email", "text": "I can't log in with andersen.tomasz@example.org, can you reset it?", "entities": [{"type": "EMAIL_ADDRESS", "value": "andersen.tomasz@example.org"}]}
+{"id": "pii-005", "category": "email", "text": "Forwarding this thread to sofia_haddad33@fabrikam.test for review.", "entities": [{"type": "EMAIL_ADDRESS", "value": "sofia_haddad33@fabrikam.test"}]}
+{"id": "pii-006", "category": "email", "text": "I can't log in with nadia.dubois@example.org, can you reset it?", "entities": [{"type": "EMAIL_ADDRESS", "value": "nadia.dubois@example.org"}]}
+{"id": "pii-007", "category": "email", "text": "Forwarding this thread to priya_iyer69@fabrikam.test for review.", "entities": [{"type": "EMAIL_ADDRESS", "value": "priya_iyer69@fabrikam.test"}]}
+{"id": "pii-008", "category": "email", "text": "I can't log in with amara_rahman91@northwind.example, can you reset it?", "entities": [{"type": "EMAIL_ADDRESS", "value": "amara_rahman91@northwind.example"}]}
+{"id": "pii-009", "category": "email", "text": "Update the billing contact to noah.andersen@corp.internal and confirm.", "entities": [{"type": "EMAIL_ADDRESS", "value": "noah.andersen@corp.internal"}]}
+{"id": "pii-010", "category": "email", "text": "Update the billing contact to castillo.rahul@mail.example.com and confirm.", "entities": [{"type": "EMAIL_ADDRESS", "value": "castillo.rahul@mail.example.com"}]}
+{"id": "pii-011", "category": "email", "text": "Update the billing contact to diego_haddad68@corp.internal and confirm.", "entities": [{"type": "EMAIL_ADDRESS", "value": "diego_haddad68@corp.internal"}]}
+{"id": "pii-012", "category": "email", "text": "Reply-To: diego.dubois@mail.example.com", "entities": [{"type": "EMAIL_ADDRESS", "value": "diego.dubois@mail.example.com"}]}
+{"id": "pii-013", "category": "email", "text": "Update the billing contact to amara.watanabe@example.org and confirm.", "entities": [{"type": "EMAIL_ADDRESS", "value": "amara.watanabe@example.org"}]}
+{"id": "pii-014", "category": "email", "text": "Please send the signed contract to castillo.lucas@contoso.example by Friday.", "entities": [{"type": "EMAIL_ADDRESS", "value": "castillo.lucas@contoso.example"}]}
+{"id": "pii-015", "category": "email", "text": "Update the billing contact to hoffmann.omar@example.org and confirm.", "entities": [{"type": "EMAIL_ADDRESS", "value": "hoffmann.omar@example.org"}]}
+{"id": "pii-016", "category": "email", "text": "Update the billing contact to hannah_iyer52@mail.example.com and confirm.", "entities": [{"type": "EMAIL_ADDRESS", "value": "hannah_iyer52@mail.example.com"}]}
+{"id": "pii-017", "category": "email", "text": "I can't log in with castillo.felix@contoso.example, can you reset it?", "entities": [{"type": "EMAIL_ADDRESS", "value": "castillo.felix@contoso.example"}]}
+{"id": "pii-018", "category": "email", "text": "Update the billing contact to hgonzalez@example.org and confirm.", "entities": [{"type": "EMAIL_ADDRESS", "value": "hgonzalez@example.org"}]}
+{"id": "pii-019", "category": "email", "text": "I can't log in with ingrid_dubois63@contoso.example, can you reset it?", "entities": [{"type": "EMAIL_ADDRESS", "value": "ingrid_dubois63@contoso.example"}]}
+{"id": "pii-020", "category": "email", "text": "Update the billing contact to castillo.felix@corp.internal and confirm.", "entities": [{"type": "EMAIL_ADDRESS", "value": "castillo.felix@corp.internal"}]}
+{"id": "pii-021", "category": "email", "text": "Please send the signed contract to isabel_watanabe38@corp.internal by Friday.", "entities": [{"type": "EMAIL_ADDRESS", "value": "isabel_watanabe38@corp.internal"}]}
+{"id": "pii-022", "category": "email", "text": "Reply-To: ingrid_hoffmann92@corp.internal", "entities": [{"type": "EMAIL_ADDRESS", "value": "ingrid_hoffmann92@corp.internal"}]}
+{"id": "pii-023", "category": "email", "text": "I can't log in with lucas.sorensen@example.org, can you reset it?", "entities": [{"type": "EMAIL_ADDRESS", "value": "lucas.sorensen@example.org"}]}
+{"id": "pii-024", "category": "email", "text": "Forwarding this thread to dfischer@example.org for review.", "entities": [{"type": "EMAIL_ADDRESS", "value": "dfischer@example.org"}]}
+{"id": "pii-025", "category": "email", "text": "Forwarding this thread to amara.andersen@northwind.example for review.", "entities": [{"type": "EMAIL_ADDRESS", "value": "amara.andersen@northwind.example"}]}
+{"id": "pii-026", "category": "email", "text": "Please send the signed contract to yiyer@contoso.example by Friday.", "entities": [{"type": "EMAIL_ADDRESS", "value": "yiyer@contoso.example"}]}
+{"id": "pii-027", "category": "email", "text": "I can't log in with grace_watanabe97@example.org, can you reset it?", "entities": [{"type": "EMAIL_ADDRESS", "value": "grace_watanabe97@example.org"}]}
+{"id": "pii-028", "category": "email", "text": "Reply-To: gonzalez.amara@example.org", "entities": [{"type": "EMAIL_ADDRESS", "value": "gonzalez.amara@example.org"}]}
+{"id": "pii-029", "category": "email", "text": "Update the billing contact to rherrera@mail.example.com and confirm.", "entities": [{"type": "EMAIL_ADDRESS", "value": "rherrera@mail.example.com"}]}
+{"id": "pii-030", "category": "email", "text": "Update the billing contact to araman@contoso.example and confirm.", "entities": [{"type": "EMAIL_ADDRESS", "value": "araman@contoso.example"}]}
+{"id": "pii-031", "category": "phone", "text": "Callback number: +1 312 555 0164", "entities": [{"type": "PHONE_NUMBER", "value": "+1 312 555 0164"}]}
+{"id": "pii-032", "category": "phone", "text": "You can reach the front desk at (503) 555-0125 after 9am.", "entities": [{"type": "PHONE_NUMBER", "value": "(503) 555-0125"}]}
+{"id": "pii-033", "category": "phone", "text": "My new mobile is 646.555.0109, please update your records.", "entities": [{"type": "PHONE_NUMBER", "value": "646.555.0109"}]}
+{"id": "pii-034", "category": "phone", "text": "My new mobile is +1 415 555 0103, please update your records.", "entities": [{"type": "PHONE_NUMBER", "value": "+1 415 555 0103"}]}
+{"id": "pii-035", "category": "phone", "text": "You can reach the front desk at 617.555.0138 after 9am.", "entities": [{"type": "PHONE_NUMBER", "value": "617.555.0138"}]}
+{"id": "pii-036", "category": "phone", "text": "Callback number: +1-646-555-0159", "entities": [{"type": "PHONE_NUMBER", "value": "+1-646-555-0159"}]}
+{"id": "pii-037", "category": "phone", "text": "For urgent issues dial 212-555-0175.", "entities": [{"type": "PHONE_NUMBER", "value": "212-555-0175"}]}
+{"id": "pii-038", "category": "phone", "text": "Callback number: +1-503-555-0143", "entities": [{"type": "PHONE_NUMBER", "value": "+1-503-555-0143"}]}
+{"id": "pii-039", "category": "phone", "text": "For urgent issues dial +1-617-555-0190.", "entities": [{"type": "PHONE_NUMBER", "value": "+1-617-555-0190"}]}
+{"id": "pii-040", "category": "phone", "text": "You can reach the front desk at 415-555-0125 after 9am.", "entities": [{"type": "PHONE_NUMBER", "value": "415-555-0125"}]}
+{"id": "pii-041", "category": "phone", "text": "For urgent issues dial (617) 555-0169.", "entities": [{"type": "PHONE_NUMBER", "value": "(617) 555-0169"}]}
+{"id": "pii-042", "category": "phone", "text": "You can reach the front desk at +44 20 7946 0595 after 9am.", "entities": [{"type": "PHONE_NUMBER", "value": "+44 20 7946 0595"}]}
+{"id": "pii-043", "category": "phone", "text": "Fax the form to 212-555-0182 or upload it to the portal.", "entities": [{"type": "PHONE_NUMBER", "value": "212-555-0182"}]}
+{"id": "pii-044", "category": "phone", "text": "For urgent issues dial 212-555-0120.", "entities": [{"type": "PHONE_NUMBER", "value": "212-555-0120"}]}
+{"id": "pii-045", "category": "phone", "text": "You can reach the front desk at +1 312 555 0154 after 9am.", "entities": [{"type": "PHONE_NUMBER", "value": "+1 312 555 0154"}]}
+{"id": "pii-046", "category": "phone", "text": "Callback number: 646.555.0139", "entities": [{"type": "PHONE_NUMBER", "value": "646.555.0139"}]}
+{"id": "pii-047", "category": "phone", "text": "My new mobile is +1 312 555 0159, please update your records.", "entities": [{"type": "PHONE_NUMBER", "value": "+1 312 555 0159"}]}
+{"id": "pii-048", "category": "phone", "text": "For urgent issues dial +1-646-555-0122.", "entities": [{"type": "PHONE_NUMBER", "value": "+1-646-555-0122"}]}
+{"id": "pii-049", "category": "phone", "text": "My new mobile is +1-646-555-0115, please update your records.", "entities": [{"type": "PHONE_NUMBER", "value": "+1-646-555-0115"}]}
+{"id": "pii-050", "category": "phone", "text": "You can reach the front desk at (415) 555-0127 after 9am.", "entities": [{"type": "PHONE_NUMBER", "value": "(415) 555-0127"}]}
+{"id": "pii-051", "category": "phone", "text": "Fax the form to +1 646 555 0182 or upload it to the portal.", "entities": [{"type": "PHONE_NUMBER", "value": "+1 646 555 0182"}]}
+{"id": "pii-052", "category": "phone", "text": "Callback number: 617.555.0123", "entities": [{"type": "PHONE_NUMBER", "value": "617.555.0123"}]}
+{"id": "pii-053", "category": "phone", "text": "Fax the form to +1-312-555-0171 or upload it to the portal.", "entities": [{"type": "PHONE_NUMBER", "value": "+1-312-555-0171"}]}
+{"id": "pii-054", "category": "phone", "text": "My new mobile is +44 20 7946 0735, please update your records.", "entities": [{"type": "PHONE_NUMBER", "value": "+44 20 7946 0735"}]}
+{"id": "pii-055", "category": "phone", "text": "Callback number: +44 20 7946 0681", "entities": [{"type": "PHONE_NUMBER", "value": "+44 20 7946 0681"}]}
+{"id": "pii-056", "category": "phone", "text": "Fax the form to 503.555.0137 or upload it to the portal.", "entities": [{"type": "PHONE_NUMBER", "value": "503.555.0137"}]}
+{"id": "pii-057", "category": "phone", "text": "Text 4155550112 when you arrive.", "entities": [{"type": "PHONE_NUMBER", "value": "4155550112"}]}
+{"id": "pii-058", "category": "phone", "text": "call me at 4155550155 tomorrow", "entities": [{"type": "PHONE_NUMBER", "value": "4155550155"}]}
+{"id": "pii-059", "category": "phone", "text": "call me at 4155550187 tomorrow", "entities": [{"type": "PHONE_NUMBER", "value": "4155550187"}]}
+{"id": "pii-060", "category": "phone", "text": "call me at 2125550192 tomorrow", "entities": [{"type": "PHONE_NUMBER", "value": "2125550192"}]}
+{"id": "pii-061", "category": "phone", "text": "call me at 6465550180 tomorrow", "entities": [{"type": "PHONE_NUMBER", "value": "6465550180"}]}
+{"id": "pii-062", "category": "phone", "text": "Text 6465550140 when you arrive.", "entities": [{"type": "PHONE_NUMBER", "value": "6465550140"}]}
+{"id": "pii-063", "category": "card", "text": "payment_method: 5555-5555-5555-4444", "entities": [{"type": "CREDIT_CARD", "value": "5555-5555-5555-4444"}]}
+{"id": "pii-064", "category": "card", "text": "payment_method: 378282246310005", "entities": [{"type": "CREDIT_CARD", "value": "378282246310005"}]}
+{"id": "pii-065", "category": "card", "text": "Charge the order to card 4012 8888 8888 1881, expiry 08/29.", "entities": [{"type": "CREDIT_CARD", "value": "4012 8888 8888 1881"}]}
+{"id": "pii-066", "category": "card", "text": "Refund the last payment on 4000-0566-5566-5556 please.", "entities": [{"type": "CREDIT_CARD", "value": "4000-0566-5566-5556"}]}
+{"id": "pii-067", "category": "card", "text": "Charge the order to card 4111 1111 1111 1111, expiry 08/29.", "entities": [{"type": "CREDIT_CARD", "value": "4111 1111 1111 1111"}]}
+{"id": "pii-068", "category": "card", "text": "payment_method: 6011 1111 1111 1117", "entities": [{"type": "CREDIT_CARD", "value": "6011 1111 1111 1117"}]}
+{"id": "pii-069", "category": "card", "text": "payment_method: 5555 5555 5555 4444", "entities": [{"type": "CREDIT_CARD", "value": "5555 5555 5555 4444"}]}
+{"id": "pii-070", "category": "card", "text": "Charge the order to card 5105-1051-0510-5100, expiry 08/29.", "entities": [{"type": "CREDIT_CARD", "value": "5105-1051-0510-5100"}]}
+{"id": "pii-071", "category": "card", "text": "The customer read out 4000-0566-5566-5556 over the phone.", "entities": [{"type": "CREDIT_CARD", "value": "4000-0566-5566-5556"}]}
+{"id": "pii-072", "category": "card", "text": "Charge the order to card 2223-0031-2200-3222, expiry 08/29.", "entities": [{"type": "CREDIT_CARD", "value": "2223-0031-2200-3222"}]}
+{"id": "pii-073", "category": "card", "text": "payment_method: 5105105105105100", "entities": [{"type": "CREDIT_CARD", "value": "5105105105105100"}]}
+{"id": "pii-074", "category": "card", "text": "payment_method: 4000-0566-5566-5556", "entities": [{"type": "CREDIT_CARD", "value": "4000-0566-5566-5556"}]}
+{"id": "pii-075", "category": "card", "text": "Refund the last payment on 4111111111111111 please.", "entities": [{"type": "CREDIT_CARD", "value": "4111111111111111"}]}
+{"id": "pii-076", "category": "card", "text": "payment_method: 4111-1111-1111-1111", "entities": [{"type": "CREDIT_CARD", "value": "4111-1111-1111-1111"}]}
+{"id": "pii-077", "category": "card", "text": "Charge the order to card 4012888888881881, expiry 08/29.", "entities": [{"type": "CREDIT_CARD", "value": "4012888888881881"}]}
+{"id": "pii-078", "category": "card", "text": "payment_method: 4012-8888-8888-1881", "entities": [{"type": "CREDIT_CARD", "value": "4012-8888-8888-1881"}]}
+{"id": "pii-079", "category": "card", "text": "payment_method: 4111111111111111", "entities": [{"type": "CREDIT_CARD", "value": "4111111111111111"}]}
+{"id": "pii-080", "category": "card", "text": "Charge the order to card 6011111111111117, expiry 08/29.", "entities": [{"type": "CREDIT_CARD", "value": "6011111111111117"}]}
+{"id": "pii-081", "category": "card", "text": "Charge the order to card 5555 5555 5555 4444, expiry 08/29.", "entities": [{"type": "CREDIT_CARD", "value": "5555 5555 5555 4444"}]}
+{"id": "pii-082", "category": "card", "text": "The customer read out 5555 5555 5555 4444 over the phone.", "entities": [{"type": "CREDIT_CARD", "value": "5555 5555 5555 4444"}]}
+{"id": "pii-083", "category": "card", "text": "payment_method: 5105105105105100", "entities": [{"type": "CREDIT_CARD", "value": "5105105105105100"}]}
+{"id": "pii-084", "category": "card", "text": "The customer read out 4111-1111-1111-1111 over the phone.", "entities": [{"type": "CREDIT_CARD", "value": "4111-1111-1111-1111"}]}
+{"id": "pii-085", "category": "card", "text": "Refund the last payment on 5105-1051-0510-5100 please.", "entities": [{"type": "CREDIT_CARD", "value": "5105-1051-0510-5100"}]}
+{"id": "pii-086", "category": "card", "text": "Refund the last payment on 4000 0566 5566 5556 please.", "entities": [{"type": "CREDIT_CARD", "value": "4000 0566 5566 5556"}]}
+{"id": "pii-087", "category": "card", "text": "The customer read out 6011 1111 1111 1117 over the phone.", "entities": [{"type": "CREDIT_CARD", "value": "6011 1111 1111 1117"}]}
+{"id": "pii-088", "category": "ssn", "text": "SSN on file 556-04-8870; do not share.", "entities": [{"type": "US_SSN", "value": "556-04-8870"}]}
+{"id": "pii-089", "category": "ssn", "text": "Applicant SSN: 262-19-3740", "entities": [{"type": "US_SSN", "value": "262-19-3740"}]}
+{"id": "pii-090", "category": "ssn", "text": "SSN on file 017-36-8867; do not share.", "entities": [{"type": "US_SSN", "value": "017-36-8867"}]}
+{"id": "pii-091", "category": "ssn", "text": "Her social security number is 428-34-5157 per the W-2.", "entities": [{"type": "US_SSN", "value": "428-34-5157"}]}
+{"id": "pii-092", "category": "ssn", "text": "Her social security number is 642-76-1466 per the W-2.", "entities": [{"type": "US_SSN", "value": "642-76-1466"}]}
+{"id": "pii-093", "category": "ssn", "text": "Verify 567-05-8423 against the payroll record.", "entities": [{"type": "US_SSN", "value": "567-05-8423"}]}
+{"id": "pii-094", "category": "ssn", "text": "Verify 349-82-8528 against the payroll record.", "entities": [{"type": "US_SSN", "value": "349-82-8528"}]}
+{"id": "pii-095", "category": "ssn", "text": "Her social security number is 058-85-0187 per the W-2.", "entities": [{"type": "US_SSN", "value": "058-85-0187"}]}
+{"id": "pii-096", "category": "ssn", "text": "Her social security number is 482-08-3635 per the W-2.", "entities": [{"type": "US_SSN", "value": "482-08-3635"}]}
+{"id": "pii-097", "category": "ssn", "text": "Her social security number is 765-52-5898 per the W-2.", "entities": [{"type": "US_SSN", "value": "765-52-5898"}]}
+{"id": "pii-098", "category": "ssn", "text": "Her social security number is 576-36-5631 per the W-2.", "entities": [{"type": "US_SSN", "value": "576-36-5631"}]}
+{"id": "pii-099", "category": "ssn", "text": "SSN on file 384-46-7525; do not share.", "entities": [{"type": "US_SSN", "value": "384-46-7525"}]}
+{"id": "pii-100", "category": "ssn", "text": "Verify 562-61-9513 against the payroll record.", "entities": [{"type": "US_SSN", "value": "562-61-9513"}]}
+{"id": "pii-101", "category": "ssn", "text": "Her social security number is 193-21-6727 per the W-2.", "entities": [{"type": "US_SSN", "value": "193-21-6727"}]}
+{"id": "pii-102", "category": "ssn", "text": "SSN on file 497-01-5808; do not share.", "entities": [{"type": "US_SSN", "value": "497-01-5808"}]}
+{"id": "pii-103", "category": "ssn", "text": "Applicant SSN: 816-05-2828", "entities": [{"type": "US_SSN", "value": "816-05-2828"}]}
+{"id": "pii-104", "category": "ssn", "text": "Verify 307-48-8958 against the payroll record.", "entities": [{"type": "US_SSN", "value": "307-48-8958"}]}
+{"id": "pii-105", "category": "ssn", "text": "Applicant SSN: 142-92-1651", "entities": [{"type": "US_SSN", "value": "142-92-1651"}]}
+{"id": "pii-106", "category": "ssn", "text": "Verify 547-28-9542 against the payroll record.", "entities": [{"type": "US_SSN", "value": "547-28-9542"}]}
+{"id": "pii-107", "category": "ssn", "text": "SSN on file 587-06-6444; do not share.", "entities": [{"type": "US_SSN", "value": "587-06-6444"}]}
+{"id": "pii-108", "category": "ssn", "text": "Applicant SSN: 552-67-2590", "entities": [{"type": "US_SSN", "value": "552-67-2590"}]}
+{"id": "pii-109", "category": "ssn", "text": "Verify 088-19-6377 against the payroll record.", "entities": [{"type": "US_SSN", "value": "088-19-6377"}]}
+{"id": "pii-110", "category": "ssn", "text": "Applicant SSN: 561-34-5086", "entities": [{"type": "US_SSN", "value": "561-34-5086"}]}
+{"id": "pii-111", "category": "ssn", "text": "Her social security number is 757-76-3110 per the W-2.", "entities": [{"type": "US_SSN", "value": "757-76-3110"}]}
+{"id": "pii-112", "category": "ssn", "text": "Verify 300-38-8867 against the payroll record.", "entities": [{"type": "US_SSN", "value": "300-38-8867"}]}
+{"id": "pii-113", "category": "person", "text": "Dear Noah Okafor, thank you for your patience.", "entities": [{"type": "PERSON", "value": "Noah Okafor"}]}
+{"id": "pii-114", "category": "person", "text": "Interview notes: Sofia Sorensen has strong Python experience.", "entities": [{"type": "PERSON", "value": "Sofia Sorensen"}]}
+{"id": "pii-115", "category": "person", "text": "Interview notes: Maria Whitaker has strong Python experience.", "entities": [{"type": "PERSON", "value": "Maria Whitaker"}]}
+{"id": "pii-116", "category": "person", "text": "The ticket was escalated by Diego Moreau from the finance team.", "entities": [{"type": "PERSON", "value": "Diego Moreau"}]}
+{"id": "pii-117", "category": "person", "text": "Interview notes: Rahul Brennan has strong Python experience.", "entities": [{"type": "PERSON", "value": "Rahul Brennan"}]}
+{"id": "pii-118", "category": "person", "text": "Please schedule a call with Chloe Gonzalez next week.", "entities": [{"type": "PERSON", "value": "Chloe Gonzalez"}]}
+{"id": "pii-119", "category": "person", "text": "Please schedule a call with Elena Iyer next week.", "entities": [{"type": "PERSON", "value": "Elena Iyer"}]}
+{"id": "pii-120", "category": "person", "text": "Liam Gonzalez approved the refund yesterday afternoon.", "entities": [{"type": "PERSON", "value": "Liam Gonzalez"}]}
+{"id": "pii-121", "category": "person", "text": "Interview notes: Chloe Navarro has strong Python experience.", "entities": [{"type": "PERSON", "value": "Chloe Navarro"}]}
+{"id": "pii-122", "category": "person", "text": "The ticket was escalated by Omar Gonzalez from the finance team.", "entities": [{"type": "PERSON", "value": "Omar Gonzalez"}]}
+{"id": "pii-123", "category": "person", "text": "The ticket was escalated by Priya Fischer from the finance team.", "entities": [{"type": "PERSON", "value": "Priya Fischer"}]}
+{"id": "pii-124", "category": "person", "text": "Please schedule a call with Sofia Iyer next week.", "entities": [{"type": "PERSON", "value": "Sofia Iyer"}]}
+{"id": "pii-125", "category": "person", "text": "Please schedule a call with Grace Whitaker next week.", "entities": [{"type": "PERSON", "value": "Grace Whitaker"}]}
+{"id": "pii-126", "category": "person", "text": "The ticket was escalated by Amara Kowalczyk from the finance team.", "entities": [{"type": "PERSON", "value": "Amara Kowalczyk"}]}
+{"id": "pii-127", "category": "person", "text": "Interview notes: Diego Kowalczyk has strong Python experience.", "entities": [{"type": "PERSON", "value": "Diego Kowalczyk"}]}
+{"id": "pii-128", "category": "person", "text": "The ticket was escalated by Priya Haddad from the finance team.", "entities": [{"type": "PERSON", "value": "Priya Haddad"}]}
+{"id": "pii-129", "category": "person", "text": "Interview notes: Grace Mehta has strong Python experience.", "entities": [{"type": "PERSON", "value": "Grace Mehta"}]}
+{"id": "pii-130", "category": "person", "text": "Dear Tomasz Fischer, thank you for your patience.", "entities": [{"type": "PERSON", "value": "Tomasz Fischer"}]}
+{"id": "pii-131", "category": "person", "text": "Our new account manager, Diego Kowalczyk, starts Monday.", "entities": [{"type": "PERSON", "value": "Diego Kowalczyk"}]}
+{"id": "pii-132", "category": "person", "text": "The ticket was escalated by Chloe Herrera from the finance team.", "entities": [{"type": "PERSON", "value": "Chloe Herrera"}]}
+{"id": "pii-133", "category": "person", "text": "Our new account manager, Isabel Andersen, starts Monday.", "entities": [{"type": "PERSON", "value": "Isabel Andersen"}]}
+{"id": "pii-134", "category": "person", "text": "Noah Raman approved the refund yesterday afternoon.", "entities": [{"type": "PERSON", "value": "Noah Raman"}]}
+{"id": "pii-135", "category": "person", "text": "The ticket was escalated by Priya Castillo from the finance team.", "entities": [{"type": "PERSON", "value": "Priya Castillo"}]}
+{"id": "pii-136", "category": "person", "text": "Please schedule a call with Hannah Navarro next week.", "entities": [{"type": "PERSON", "value": "Hannah Navarro"}]}
+{"id": "pii-137", "category": "person", "text": "Dear Liam Petrova, thank you for your patience.", "entities": [{"type": "PERSON", "value": "Liam Petrova"}]}
+{"id": "pii-138", "category": "person", "text": "The ticket was escalated by Chloe Iyer from the finance team.", "entities": [{"type": "PERSON", "value": "Chloe Iyer"}]}
+{"id": "pii-139", "category": "person", "text": "Interview notes: Elena Sorensen has strong Python experience.", "entities": [{"type": "PERSON", "value": "Elena Sorensen"}]}
+{"id": "pii-140", "category": "person", "text": "The ticket was escalated by Diego Haddad from the finance team.", "entities": [{"type": "PERSON", "value": "Diego Haddad"}]}
+{"id": "pii-141", "category": "person", "text": "Dear Liam Lindqvist, thank you for your patience.", "entities": [{"type": "PERSON", "value": "Liam Lindqvist"}]}
+{"id": "pii-142", "category": "person", "text": "The ticket was escalated by Mateo Hoffmann from the finance team.", "entities": [{"type": "PERSON", "value": "Mateo Hoffmann"}]}
+{"id": "pii-143", "category": "secret", "text": "export SERVICE_TOKEN=sk\u005flive_A1ZLynjCVKQViBrv1hur13CqjIOr", "entities": [{"type": "SECRET", "value": "sk\u005flive_A1ZLynjCVKQViBrv1hur13CqjIOr"}]}
+{"id": "pii-144", "category": "secret", "text": "# .env\nAPI_KEY=sk\u005flive_jJXhrsKDOzzbJTvRAvgRX7F6R2O8\nDEBUG=false", "entities": [{"type": "SECRET", "value": "sk\u005flive_jJXhrsKDOzzbJTvRAvgRX7F6R2O8"}]}
+{"id": "pii-145", "category": "secret", "text": "export SERVICE_TOKEN=tg\u005flive_7n1wvdzl_arJSqivLPNA1XZE24EvacWoOhQ28rubX", "entities": [{"type": "SECRET", "value": "tg\u005flive_7n1wvdzl_arJSqivLPNA1XZE24EvacWoOhQ28rubX"}]}
+{"id": "pii-146", "category": "secret", "text": "2026-10-14T10:22:31Z WARN auth failed for token=gi\u0074hub_pat_GrNOxfJSmIXa_gjv_o8DnMRkTtfKATHRLJigbr8AclJUGo86EQQvvwuMEqF4u1qcPFibEZ retrying", "entities": [{"type": "SECRET", "value": "gi\u0074hub_pat_GrNOxfJSmIXa_gjv_o8DnMRkTtfKATHRLJigbr8AclJUGo86EQQvvwuMEqF4u1qcPFibEZ"}]}
+{"id": "pii-147", "category": "secret", "text": "headers = {'Authorization': 'Bearer eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJzdWIiOiAiNzM1NDg2NDMiLCAiZXhwIjogMTk5OTk5OTk5OX0.g0iM9lP_ORUxjwGXnBd7EA2qBI_rPUYyttsqheJMwrI'}", "entities": [{"type": "SECRET", "value": "eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJzdWIiOiAiNzM1NDg2NDMiLCAiZXhwIjogMTk5OTk5OTk5OX0.g0iM9lP_ORUxjwGXnBd7EA2qBI_rPUYyttsqheJMwrI"}]}
+{"id": "pii-148", "category": "secret", "text": "Here is my key, why is this failing? sk\u005flive_iDklSdWlRjAPNF6I9btoGx4IfDRV", "entities": [{"type": "SECRET", "value": "sk\u005flive_iDklSdWlRjAPNF6I9btoGx4IfDRV"}]}
+{"id": "pii-149", "category": "secret", "text": "# .env\nAPI_KEY=gh\u0070_5ujTGcEadgwL2TS00qvWbkGm30fBQBm11kpo\nDEBUG=false", "entities": [{"type": "SECRET", "value": "gh\u0070_5ujTGcEadgwL2TS00qvWbkGm30fBQBm11kpo"}]}
+{"id": "pii-150", "category": "secret", "text": "2026-10-14T10:22:31Z WARN auth failed for token=gi\u0074hub_pat_nxkI3BUBD2xTn9tOVC78JMEf45nVmhWfwTRNSkhlnPBm589_BbJ_jP56OYrsVxzaEHD4r1 retrying", "entities": [{"type": "SECRET", "value": "gi\u0074hub_pat_nxkI3BUBD2xTn9tOVC78JMEf45nVmhWfwTRNSkhlnPBm589_BbJ_jP56OYrsVxzaEHD4r1"}]}
+{"id": "pii-151", "category": "secret", "text": "2026-10-14T10:22:31Z WARN auth failed for token=gi\u0074hub_pat_igYjJo_wDyMOLd7SQJuWq9RfDDwI0YH0H8g0rscfLceH7CKgyZPZK9DNEIbj5uibgzfkI3 retrying", "entities": [{"type": "SECRET", "value": "gi\u0074hub_pat_igYjJo_wDyMOLd7SQJuWq9RfDDwI0YH0H8g0rscfLceH7CKgyZPZK9DNEIbj5uibgzfkI3"}]}
+{"id": "pii-152", "category": "secret", "text": "Here is my key, why is this failing? AK\u0049ACE7HVJT4PU3PZP6U", "entities": [{"type": "SECRET", "value": "AK\u0049ACE7HVJT4PU3PZP6U"}]}
+{"id": "pii-153", "category": "secret", "text": "Here is my key, why is this failing? AK\u0049A5PL2MH4Y47B5NYC7", "entities": [{"type": "SECRET", "value": "AK\u0049A5PL2MH4Y47B5NYC7"}]}
+{"id": "pii-154", "category": "secret", "text": "Here is my key, why is this failing? gh\u0070_sp3HurXB3VLbwM3Hk9HhKxZnLeJkDzZhZgZA", "entities": [{"type": "SECRET", "value": "gh\u0070_sp3HurXB3VLbwM3Hk9HhKxZnLeJkDzZhZgZA"}]}
+{"id": "pii-155", "category": "secret", "text": "headers = {'Authorization': 'Bearer AK\u0049APMDQK7RXFQKCN9H2'}", "entities": [{"type": "SECRET", "value": "AK\u0049APMDQK7RXFQKCN9H2"}]}
+{"id": "pii-156", "category": "secret", "text": "Here is my key, why is this failing? AK\u0049AW36CM4DSFKERNASC", "entities": [{"type": "SECRET", "value": "AK\u0049AW36CM4DSFKERNASC"}]}
+{"id": "pii-157", "category": "secret", "text": "headers = {'Authorization': 'Bearer eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJzdWIiOiAiMTgyODg5ODMiLCAiZXhwIjogMTk5OTk5OTk5OX0.-gTDY7lFeb0Xl4wvEvzRZJv7lcSjqF8tPw-oraWl-1R'}", "entities": [{"type": "SECRET", "value": "eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJzdWIiOiAiMTgyODg5ODMiLCAiZXhwIjogMTk5OTk5OTk5OX0.-gTDY7lFeb0Xl4wvEvzRZJv7lcSjqF8tPw-oraWl-1R"}]}
+{"id": "pii-158", "category": "secret", "text": "export SERVICE_TOKEN=sk\u005flive_fVRLbPqphy4p8tMRKRKltVIabv6V", "entities": [{"type": "SECRET", "value": "sk\u005flive_fVRLbPqphy4p8tMRKRKltVIabv6V"}]}
+{"id": "pii-159", "category": "secret", "text": "client = Client(api_key=\"gi\u0074hub_pat_LgpQEW8kM9G7QEheiaNHtjA8qbCMs8jyOOaCLhgo1uCZe2y9rCXCU81tqCVNAEs3u0kgNJ\")", "entities": [{"type": "SECRET", "value": "gi\u0074hub_pat_LgpQEW8kM9G7QEheiaNHtjA8qbCMs8jyOOaCLhgo1uCZe2y9rCXCU81tqCVNAEs3u0kgNJ"}]}
+{"id": "pii-160", "category": "secret", "text": "client = Client(api_key=\"xo\u0078b-346352136295-8639848864573-lGtcVN0mtk2BQLiCyOFRdNtV\")", "entities": [{"type": "SECRET", "value": "xo\u0078b-346352136295-8639848864573-lGtcVN0mtk2BQLiCyOFRdNtV"}]}
+{"id": "pii-161", "category": "secret", "text": "client = Client(api_key=\"tg\u005flive_v9t0o86s_ZQ19NGw1wWyHoaAHByN56x28ZpJLyw3V\")", "entities": [{"type": "SECRET", "value": "tg\u005flive_v9t0o86s_ZQ19NGw1wWyHoaAHByN56x28ZpJLyw3V"}]}
+{"id": "pii-162", "category": "secret", "text": "export SERVICE_TOKEN=sk\u002dproj-EBw_Y8u3yVdkmoBYp6Sm1EPNamiRt60mny_RxplS", "entities": [{"type": "SECRET", "value": "sk\u002dproj-EBw_Y8u3yVdkmoBYp6Sm1EPNamiRt60mny_RxplS"}]}
+{"id": "pii-163", "category": "secret", "text": "headers = {'Authorization': 'Bearer gh\u0070_CD826g6JYBW8ifbRDB4eCFdCEwVgdAlBOeqT'}", "entities": [{"type": "SECRET", "value": "gh\u0070_CD826g6JYBW8ifbRDB4eCFdCEwVgdAlBOeqT"}]}
+{"id": "pii-164", "category": "secret", "text": "export SERVICE_TOKEN=tg\u005flive_p1gwkajt_qXZBYgSox7WeA4OfKXNquB2N3LtoV0MH", "entities": [{"type": "SECRET", "value": "tg\u005flive_p1gwkajt_qXZBYgSox7WeA4OfKXNquB2N3LtoV0MH"}]}
+{"id": "pii-165", "category": "secret", "text": "# .env\nAPI_KEY=tg\u005flive_0qc9q73s_AV23qnT7XULCkw0Ht8qth3Mpa6mMMvSu\nDEBUG=false", "entities": [{"type": "SECRET", "value": "tg\u005flive_0qc9q73s_AV23qnT7XULCkw0Ht8qth3Mpa6mMMvSu"}]}
+{"id": "pii-166", "category": "secret", "text": "client = Client(api_key=\"sk\u002dproj-RZ27WnV35PWTbTXSG9bU07fcLgoQ3HXMGaABhjDw\")", "entities": [{"type": "SECRET", "value": "sk\u002dproj-RZ27WnV35PWTbTXSG9bU07fcLgoQ3HXMGaABhjDw"}]}
+{"id": "pii-167", "category": "secret", "text": "headers = {'Authorization': 'Bearer sk\u005flive_739NIDgRNIHONdsig3AohSe6gYYe'}", "entities": [{"type": "SECRET", "value": "sk\u005flive_739NIDgRNIHONdsig3AohSe6gYYe"}]}
+{"id": "pii-168", "category": "secret", "text": "# .env\nAPI_KEY=AI\u007aaer4dK0V4yg1NtIvYgi6094saKmq3yI7tAPu\nDEBUG=false", "entities": [{"type": "SECRET", "value": "AI\u007aaer4dK0V4yg1NtIvYgi6094saKmq3yI7tAPu"}]}
+{"id": "pii-169", "category": "secret", "text": "Here is my key, why is this failing? eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJzdWIiOiAiMDEzNzYxNTYiLCAiZXhwIjogMTk5OTk5OTk5OX0.jbUlJCyRGlMojC7SrvtyGpXG8UyywU8irKgSCJ8eNtI", "entities": [{"type": "SECRET", "value": "eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJzdWIiOiAiMDEzNzYxNTYiLCAiZXhwIjogMTk5OTk5OTk5OX0.jbUlJCyRGlMojC7SrvtyGpXG8UyywU8irKgSCJ8eNtI"}]}
+{"id": "pii-170", "category": "secret", "text": "# .env\nAPI_KEY=AI\u007aanANpH1j9OKMqgiL3lzzbdOzdOmG-0QCfT-_\nDEBUG=false", "entities": [{"type": "SECRET", "value": "AI\u007aanANpH1j9OKMqgiL3lzzbdOzdOmG-0QCfT-_"}]}
+{"id": "pii-171", "category": "secret", "text": "Here is my key, why is this failing? AI\u007aahRUzGSZkc37gf8s8ZpTpHpF2CAJB6bpe8Sw", "entities": [{"type": "SECRET", "value": "AI\u007aahRUzGSZkc37gf8s8ZpTpHpF2CAJB6bpe8Sw"}]}
+{"id": "pii-172", "category": "secret", "text": "export SERVICE_TOKEN=gh\u0070_0mSMtltWBsB0BJBmfzy2x3nMIVMKXT9FqXuT", "entities": [{"type": "SECRET", "value": "gh\u0070_0mSMtltWBsB0BJBmfzy2x3nMIVMKXT9FqXuT"}]}
+{"id": "pii-173", "category": "secret", "text": "2026-10-14T10:22:31Z WARN auth failed for token=sk\u005flive_Jf2mVrlfDloUXo7tNAD1Dc8r29U4 retrying", "entities": [{"type": "SECRET", "value": "sk\u005flive_Jf2mVrlfDloUXo7tNAD1Dc8r29U4"}]}
+{"id": "pii-174", "category": "secret", "text": "# .env\nAPI_KEY=sk\u002dproj-fJ7RiX3O1lpJphqFPOCHIbKvJ9J6jqIIYbwYlVZa\nDEBUG=false", "entities": [{"type": "SECRET", "value": "sk\u002dproj-fJ7RiX3O1lpJphqFPOCHIbKvJ9J6jqIIYbwYlVZa"}]}
+{"id": "pii-175", "category": "secret", "text": "# .env\nAPI_KEY=tg\u005flive_aedbcuib_bFdXbL8gCXdmWZMjFmocxCcmctHGECSH\nDEBUG=false", "entities": [{"type": "SECRET", "value": "tg\u005flive_aedbcuib_bFdXbL8gCXdmWZMjFmocxCcmctHGECSH"}]}
+{"id": "pii-176", "category": "secret", "text": "client = Client(api_key=\"sk\u002dproj-1ZjnNZETkkaxdFEegNaAaaNvXz4l3-mRSwFfkr14\")", "entities": [{"type": "SECRET", "value": "sk\u002dproj-1ZjnNZETkkaxdFEegNaAaaNvXz4l3-mRSwFfkr14"}]}
+{"id": "pii-177", "category": "secret", "text": "headers = {'Authorization': 'Bearer tg\u005flive_fj24bv5l_LTNknM2GeV45mmFd1iFR3gGAhxJ3hi0L'}", "entities": [{"type": "SECRET", "value": "tg\u005flive_fj24bv5l_LTNknM2GeV45mmFd1iFR3gGAhxJ3hi0L"}]}
+{"id": "pii-178", "category": "secret", "text": "# .env\nAPI_KEY=sk\u002dproj-L_cZ8ROHOh2YDQmY-1sO7zGlrIp6uWHC0Ytvdwbr\nDEBUG=false", "entities": [{"type": "SECRET", "value": "sk\u002dproj-L_cZ8ROHOh2YDQmY-1sO7zGlrIp6uWHC0Ytvdwbr"}]}
+{"id": "pii-179", "category": "secret", "text": "db_password = \"UtjOjb%izkH\"", "entities": [{"type": "SECRET", "value": "UtjOjb%izkH"}]}
+{"id": "pii-180", "category": "secret", "text": "login with password: 8DSbY4*OSxc", "entities": [{"type": "SECRET", "value": "8DSbY4*OSxc"}]}
+{"id": "pii-181", "category": "secret", "text": "login with password: d4PhIH*QJCa", "entities": [{"type": "SECRET", "value": "d4PhIH*QJCa"}]}
+{"id": "pii-182", "category": "secret", "text": "PASSWORD=huhD6I!0goo", "entities": [{"type": "SECRET", "value": "huhD6I!0goo"}]}
+{"id": "pii-183", "category": "secret", "text": "PASSWORD=Ojv3ly*x4VB", "entities": [{"type": "SECRET", "value": "Ojv3ly*x4VB"}]}
+{"id": "pii-184", "category": "secret", "text": "db_password = \"8mPEH8#6DzS\"", "entities": [{"type": "SECRET", "value": "8mPEH8#6DzS"}]}
+{"id": "pii-185", "category": "secret", "text": "DATABASE_URL=postgres://uqedws:zOglgmH9wzdDcb@db-3.corp.internal:5432/app", "entities": [{"type": "SECRET", "value": "postgres://uqedws:zOglgmH9wzdDcb@db-3.corp.internal:5432/app"}]}
+{"id": "pii-186", "category": "secret", "text": "DATABASE_URL=postgres://egrmyw:LzM5vnqoiFsXz3@db-6.corp.internal:5432/app", "entities": [{"type": "SECRET", "value": "postgres://egrmyw:LzM5vnqoiFsXz3@db-6.corp.internal:5432/app"}]}
+{"id": "pii-187", "category": "secret", "text": "DATABASE_URL=postgres://kbcgxl:hdUTZdBm44UF9e@db-8.corp.internal:5432/app", "entities": [{"type": "SECRET", "value": "postgres://kbcgxl:hdUTZdBm44UF9e@db-8.corp.internal:5432/app"}]}
+{"id": "pii-188", "category": "secret", "text": "DATABASE_URL=postgres://cudfyi:opOxeAvJxcM3JP@db-7.corp.internal:5432/app", "entities": [{"type": "SECRET", "value": "postgres://cudfyi:opOxeAvJxcM3JP@db-7.corp.internal:5432/app"}]}
+{"id": "pii-189", "category": "secret", "text": "DATABASE_URL=postgres://raydki:ngyecm6O7bjlwa@db-3.corp.internal:5432/app", "entities": [{"type": "SECRET", "value": "postgres://raydki:ngyecm6O7bjlwa@db-3.corp.internal:5432/app"}]}
+{"id": "pii-190", "category": "secret", "text": "DATABASE_URL=postgres://dlfalw:hfrI5iMPq0hZGn@db-5.corp.internal:5432/app", "entities": [{"type": "SECRET", "value": "postgres://dlfalw:hfrI5iMPq0hZGn@db-5.corp.internal:5432/app"}]}
+{"id": "pii-191", "category": "secret", "text": "aws_secret_access_key = ocrBZiDVqoqxwBWA+7+YfLbUNvKXPKtGr53Iju+N", "entities": [{"type": "SECRET", "value": "ocrBZiDVqoqxwBWA+7+YfLbUNvKXPKtGr53Iju+N"}]}
+{"id": "pii-192", "category": "secret", "text": "aws_secret_access_key = G4ZZfJ7lCDYgURcKYU6b0gR2HCDA7vX97nbZKGKZ", "entities": [{"type": "SECRET", "value": "G4ZZfJ7lCDYgURcKYU6b0gR2HCDA7vX97nbZKGKZ"}]}
+{"id": "pii-193", "category": "secret", "text": "aws_secret_access_key = NfF6wdO1Fq1Xa9RXWTk0Mh/wfF3vxe40QF/load/", "entities": [{"type": "SECRET", "value": "NfF6wdO1Fq1Xa9RXWTk0Mh/wfF3vxe40QF/load/"}]}
+{"id": "pii-194", "category": "secret", "text": "aws_secret_access_key = 0cdwqvb/cl2sHNx/sgWtJIBi74I2XIAvAo3845uk", "entities": [{"type": "SECRET", "value": "0cdwqvb/cl2sHNx/sgWtJIBi74I2XIAvAo3845uk"}]}
+{"id": "pii-195", "category": "secret", "text": "key file contents:\n--\u002d--BEGIN RSA PRIVATE KEY-----\nKlVBLM4Y4rSwieABvjq3Y1uv7lCypwI+lVdqVtxh+LvRXP/y8m+ZBLPt3e2HOajj\nLVK0e3UKQfd6IPoKoaoAEiV2fHdz7jQ1ibjhoRKHNWiUnT+SFrigvSLevihKQFjM\nwC+DBW4Om1PKsI7MHbQIfWVUT3rPxIP3j1BHdSZkBV/Uc0Ku1XpNAFj7kICd+J65\n4XyZjbNIj3iDGf2O2DnIyUJZoh5SW4o/sJXZLjvsbxIRqQcuV74i+W/GZp+6SO+R\n-----END RSA PRIVATE KEY-----\n", "entities": [{"type": "SECRET", "value": "--\u002d--BEGIN RSA PRIVATE KEY-----\nKlVBLM4Y4rSwieABvjq3Y1uv7lCypwI+lVdqVtxh+LvRXP/y8m+ZBLPt3e2HOajj\nLVK0e3UKQfd6IPoKoaoAEiV2fHdz7jQ1ibjhoRKHNWiUnT+SFrigvSLevihKQFjM\nwC+DBW4Om1PKsI7MHbQIfWVUT3rPxIP3j1BHdSZkBV/Uc0Ku1XpNAFj7kICd+J65\n4XyZjbNIj3iDGf2O2DnIyUJZoh5SW4o/sJXZLjvsbxIRqQcuV74i+W/GZp+6SO+R\n-----END RSA PRIVATE KEY-----"}]}
+{"id": "pii-196", "category": "mixed", "text": "Login for lucas_moreau2@fabrikam.test from 10.173.96.18 was blocked.", "entities": [{"type": "EMAIL_ADDRESS", "value": "lucas_moreau2@fabrikam.test"}, {"type": "IP_ADDRESS", "value": "10.173.96.18"}]}
+{"id": "pii-197", "category": "mixed", "text": "Customer Fatima Brennan paid with 4012888888881881; receipt sent to fatima_brennan34@mail.example.com.", "entities": [{"type": "PERSON", "value": "Fatima Brennan"}, {"type": "CREDIT_CARD", "value": "4012888888881881"}, {"type": "EMAIL_ADDRESS", "value": "fatima_brennan34@mail.example.com"}]}
+{"id": "pii-198", "category": "mixed", "text": "Login for amara.gonzalez@corp.internal from 10.21.243.209 was blocked.", "entities": [{"type": "EMAIL_ADDRESS", "value": "amara.gonzalez@corp.internal"}, {"type": "IP_ADDRESS", "value": "10.21.243.209"}]}
+{"id": "pii-199", "category": "mixed", "text": "Login for diego_andersen65@example.org from 10.109.97.36 was blocked.", "entities": [{"type": "EMAIL_ADDRESS", "value": "diego_andersen65@example.org"}, {"type": "IP_ADDRESS", "value": "10.109.97.36"}]}
+{"id": "pii-200", "category": "mixed", "text": "Ingrid Raman relocated to Toronto last spring; new email ingrid_raman62@fabrikam.test.", "entities": [{"type": "PERSON", "value": "Ingrid Raman"}, {"type": "LOCATION", "value": "Toronto"}, {"type": "EMAIL_ADDRESS", "value": "ingrid_raman62@fabrikam.test"}]}
+{"id": "pii-201", "category": "mixed", "text": "Customer Omar Dubois paid with 4012-8888-8888-1881; receipt sent to odubois@corp.internal.", "entities": [{"type": "PERSON", "value": "Omar Dubois"}, {"type": "CREDIT_CARD", "value": "4012-8888-8888-1881"}, {"type": "EMAIL_ADDRESS", "value": "odubois@corp.internal"}]}
+{"id": "pii-202", "category": "mixed", "text": "Employee record: Mateo Raman, SSN 232-23-7335, phone +1 212 555 0198.", "entities": [{"type": "PERSON", "value": "Mateo Raman"}, {"type": "US_SSN", "value": "232-23-7335"}, {"type": "PHONE_NUMBER", "value": "+1 212 555 0198"}]}
+{"id": "pii-203", "category": "mixed", "text": "Customer Maria Mehta paid with 378282246310005; receipt sent to maria.mehta@mail.example.com.", "entities": [{"type": "PERSON", "value": "Maria Mehta"}, {"type": "CREDIT_CARD", "value": "378282246310005"}, {"type": "EMAIL_ADDRESS", "value": "maria.mehta@mail.example.com"}]}
+{"id": "pii-204", "category": "mixed", "text": "Employee record: Sofia Petrova, SSN 632-43-7776, phone +44 20 7946 0203.", "entities": [{"type": "PERSON", "value": "Sofia Petrova"}, {"type": "US_SSN", "value": "632-43-7776"}, {"type": "PHONE_NUMBER", "value": "+44 20 7946 0203"}]}
+{"id": "pii-205", "category": "mixed", "text": "Employee record: Priya Petrova, SSN 373-89-2453, phone (212) 555-0183.", "entities": [{"type": "PERSON", "value": "Priya Petrova"}, {"type": "US_SSN", "value": "373-89-2453"}, {"type": "PHONE_NUMBER", "value": "(212) 555-0183"}]}
+{"id": "pii-206", "category": "mixed", "text": "Employee record: Omar Okafor, SSN 404-80-5560, phone +44 20 7946 0797.", "entities": [{"type": "PERSON", "value": "Omar Okafor"}, {"type": "US_SSN", "value": "404-80-5560"}, {"type": "PHONE_NUMBER", "value": "+44 20 7946 0797"}]}
+{"id": "pii-207", "category": "mixed", "text": "Nadia Whitaker relocated to Osaka last spring; new email nwhitaker@corp.internal.", "entities": [{"type": "PERSON", "value": "Nadia Whitaker"}, {"type": "LOCATION", "value": "Osaka"}, {"type": "EMAIL_ADDRESS", "value": "nwhitaker@corp.internal"}]}
+{"id": "pii-208", "category": "mixed", "text": "Employee record: Maria Petrova, SSN 070-40-6307, phone (503) 555-0128.", "entities": [{"type": "PERSON", "value": "Maria Petrova"}, {"type": "US_SSN", "value": "070-40-6307"}, {"type": "PHONE_NUMBER", "value": "(503) 555-0128"}]}
+{"id": "pii-209", "category": "mixed", "text": "Employee record: Elena Andersen, SSN 775-22-2445, phone 212.555.0126.", "entities": [{"type": "PERSON", "value": "Elena Andersen"}, {"type": "US_SSN", "value": "775-22-2445"}, {"type": "PHONE_NUMBER", "value": "212.555.0126"}]}
+{"id": "pii-210", "category": "mixed", "text": "Hannah Whitaker relocated to Seattle last spring; new email hwhitaker@contoso.example.", "entities": [{"type": "PERSON", "value": "Hannah Whitaker"}, {"type": "LOCATION", "value": "Seattle"}, {"type": "EMAIL_ADDRESS", "value": "hwhitaker@contoso.example"}]}
+{"id": "pii-211", "category": "mixed", "text": "Tomasz Whitaker relocated to Osaka last spring; new email twhitaker@corp.internal.", "entities": [{"type": "PERSON", "value": "Tomasz Whitaker"}, {"type": "LOCATION", "value": "Osaka"}, {"type": "EMAIL_ADDRESS", "value": "twhitaker@corp.internal"}]}
+{"id": "pii-212", "category": "mixed", "text": "Login for hannah_mehta85@northwind.example from 10.44.237.12 was blocked.", "entities": [{"type": "EMAIL_ADDRESS", "value": "hannah_mehta85@northwind.example"}, {"type": "IP_ADDRESS", "value": "10.44.237.12"}]}
+{"id": "pii-213", "category": "mixed", "text": "Employee record: Nadia Lindqvist, SSN 012-84-4036, phone +1-617-555-0124.", "entities": [{"type": "PERSON", "value": "Nadia Lindqvist"}, {"type": "US_SSN", "value": "012-84-4036"}, {"type": "PHONE_NUMBER", "value": "+1-617-555-0124"}]}
+{"id": "pii-214", "category": "mixed", "text": "Amara Moreau relocated to Toronto last spring; new email amara.moreau@fabrikam.test.", "entities": [{"type": "PERSON", "value": "Amara Moreau"}, {"type": "LOCATION", "value": "Toronto"}, {"type": "EMAIL_ADDRESS", "value": "amara.moreau@fabrikam.test"}]}
+{"id": "pii-215", "category": "mixed", "text": "Customer Fatima Kowalczyk paid with 378282246310005; receipt sent to fatima_kowalczyk19@contoso.example.", "entities": [{"type": "PERSON", "value": "Fatima Kowalczyk"}, {"type": "CREDIT_CARD", "value": "378282246310005"}, {"type": "EMAIL_ADDRESS", "value": "fatima_kowalczyk19@contoso.example"}]}
+{"id": "pii-216", "category": "mixed", "text": "Customer Ingrid Watanabe paid with 4111111111111111; receipt sent to watanabe.ingrid@contoso.example.", "entities": [{"type": "PERSON", "value": "Ingrid Watanabe"}, {"type": "CREDIT_CARD", "value": "4111111111111111"}, {"type": "EMAIL_ADDRESS", "value": "watanabe.ingrid@contoso.example"}]}
+{"id": "pii-217", "category": "mixed", "text": "Amara Moreau (amara_moreau36@fabrikam.test, 212-555-0163) asked for a callback.", "entities": [{"type": "PERSON", "value": "Amara Moreau"}, {"type": "EMAIL_ADDRESS", "value": "amara_moreau36@fabrikam.test"}, {"type": "PHONE_NUMBER", "value": "212-555-0163"}]}
+{"id": "pii-218", "category": "mixed", "text": "Customer Kenji Mehta paid with 378282246310005; receipt sent to kenji.mehta@corp.internal.", "entities": [{"type": "PERSON", "value": "Kenji Mehta"}, {"type": "CREDIT_CARD", "value": "378282246310005"}, {"type": "EMAIL_ADDRESS", "value": "kenji.mehta@corp.internal"}]}
+{"id": "pii-219", "category": "mixed", "text": "Login for priya_haddad83@corp.internal from 10.177.99.133 was blocked.", "entities": [{"type": "EMAIL_ADDRESS", "value": "priya_haddad83@corp.internal"}, {"type": "IP_ADDRESS", "value": "10.177.99.133"}]}
+{"id": "pii-220", "category": "mixed", "text": "Mateo Brennan relocated to Seattle last spring; new email mateo.brennan@corp.internal.", "entities": [{"type": "PERSON", "value": "Mateo Brennan"}, {"type": "LOCATION", "value": "Seattle"}, {"type": "EMAIL_ADDRESS", "value": "mateo.brennan@corp.internal"}]}
+{"id": "pii-221", "category": "mixed", "text": "Kenji Kowalczyk relocated to Lisbon last spring; new email kowalczyk.kenji@corp.internal.", "entities": [{"type": "PERSON", "value": "Kenji Kowalczyk"}, {"type": "LOCATION", "value": "Lisbon"}, {"type": "EMAIL_ADDRESS", "value": "kowalczyk.kenji@corp.internal"}]}
+{"id": "pii-222", "category": "mixed", "text": "Nadia Andersen relocated to Melbourne last spring; new email andersen.nadia@example.org.", "entities": [{"type": "PERSON", "value": "Nadia Andersen"}, {"type": "LOCATION", "value": "Melbourne"}, {"type": "EMAIL_ADDRESS", "value": "andersen.nadia@example.org"}]}
+{"id": "pii-223", "category": "mixed", "text": "Customer Kenji Brennan paid with 4012 8888 8888 1881; receipt sent to kbrennan@corp.internal.", "entities": [{"type": "PERSON", "value": "Kenji Brennan"}, {"type": "CREDIT_CARD", "value": "4012 8888 8888 1881"}, {"type": "EMAIL_ADDRESS", "value": "kbrennan@corp.internal"}]}
+{"id": "pii-224", "category": "mixed", "text": "Employee record: Sofia Rahman, SSN 849-25-0226, phone +1 617 555 0196.", "entities": [{"type": "PERSON", "value": "Sofia Rahman"}, {"type": "US_SSN", "value": "849-25-0226"}, {"type": "PHONE_NUMBER", "value": "+1 617 555 0196"}]}
+{"id": "pii-225", "category": "mixed", "text": "Fatima Kowalczyk (fatima.kowalczyk@northwind.example, (503) 555-0130) asked for a callback.", "entities": [{"type": "PERSON", "value": "Fatima Kowalczyk"}, {"type": "EMAIL_ADDRESS", "value": "fatima.kowalczyk@northwind.example"}, {"type": "PHONE_NUMBER", "value": "(503) 555-0130"}]}
+{"id": "pii-226", "category": "near_miss", "text": "Order 4716309907 shipped this morning.", "entities": []}
+{"id": "pii-227", "category": "near_miss", "text": "Tracking number 1ZTHXNLG7459339309", "entities": []}
+{"id": "pii-228", "category": "near_miss", "text": "The card ending in 4111 1111 1111 1119 was declined as invalid.", "entities": []}
+{"id": "pii-229", "category": "near_miss", "text": "Reference 000-74-5708 is a placeholder id.", "entities": []}
+{"id": "pii-230", "category": "near_miss", "text": "Ticket 666-43-4285 closed.", "entities": []}
+{"id": "pii-231", "category": "near_miss", "text": "ISBN 978-0-935-94621-1", "entities": []}
+{"id": "pii-232", "category": "near_miss", "text": "Upgraded to v8.7.13 last night.", "entities": []}
+{"id": "pii-233", "category": "near_miss", "text": "commit fb25f5bbada3e9f4d112415cc5ee6dedcdf2cf62 fixed the flaky test", "entities": []}
+{"id": "pii-234", "category": "near_miss", "text": "Please reset your password from the settings page.", "entities": []}
+{"id": "pii-235", "category": "near_miss", "text": "The token budget is 4516 tokens per request.", "entities": []}
+{"id": "pii-236", "category": "near_miss", "text": "Part number 378-79-681 is back in stock.", "entities": []}
+{"id": "pii-237", "category": "near_miss", "text": "Invoice INV-2026-2628 is overdue.", "entities": []}
+{"id": "pii-238", "category": "near_miss", "text": "The meeting is in room 680 at 9pm.", "entities": []}
+{"id": "pii-239", "category": "near_miss", "text": "request_id=806fe9c549b018e390f5dbb196f8904b status=200", "entities": []}
+{"id": "pii-240", "category": "near_miss", "text": "Order 4179424734 shipped this morning.", "entities": []}
+{"id": "pii-241", "category": "near_miss", "text": "Tracking number 1ZG1C41P7111456718", "entities": []}
+{"id": "pii-242", "category": "near_miss", "text": "The card ending in 5555 5555 5555 4440 was declined as invalid.", "entities": []}
+{"id": "pii-243", "category": "near_miss", "text": "Reference 000-24-1760 is a placeholder id.", "entities": []}
+{"id": "pii-244", "category": "near_miss", "text": "Ticket 666-47-8719 closed.", "entities": []}
+{"id": "pii-245", "category": "near_miss", "text": "ISBN 978-0-148-79223-7", "entities": []}
+{"id": "pii-246", "category": "near_miss", "text": "Upgraded to v7.26.2 last night.", "entities": []}
+{"id": "pii-247", "category": "near_miss", "text": "commit 7fa18f3c54c5953e0ef9a848a445a087a2ed1869 fixed the flaky test", "entities": []}
+{"id": "pii-248", "category": "near_miss", "text": "Please reset your password from the settings page.", "entities": []}
+{"id": "pii-249", "category": "near_miss", "text": "The token budget is 2701 tokens per request.", "entities": []}
+{"id": "pii-250", "category": "near_miss", "text": "Part number 667-21-931 is back in stock.", "entities": []}
+{"id": "pii-251", "category": "near_miss", "text": "Invoice INV-2023-3556 is overdue.", "entities": []}
+{"id": "pii-252", "category": "near_miss", "text": "The meeting is in room 913 at 2pm.", "entities": []}
+{"id": "pii-253", "category": "near_miss", "text": "request_id=c6ac3d5208317a59feb611b15febe9f2 status=200", "entities": []}
+{"id": "pii-254", "category": "near_miss", "text": "Order 4038854841 shipped this morning.", "entities": []}
+{"id": "pii-255", "category": "near_miss", "text": "Tracking number 1ZEA6GCI5185044283", "entities": []}
+{"id": "pii-256", "category": "near_miss", "text": "The card ending in 5555 5555 5555 4445 was declined as invalid.", "entities": []}
+{"id": "pii-257", "category": "near_miss", "text": "Reference 000-88-4363 is a placeholder id.", "entities": []}
+{"id": "pii-258", "category": "near_miss", "text": "Ticket 666-17-8052 closed.", "entities": []}
+{"id": "pii-259", "category": "near_miss", "text": "ISBN 978-0-483-45090-7", "entities": []}
+{"id": "pii-260", "category": "near_miss", "text": "Upgraded to v8.2.4 last night.", "entities": []}
+{"id": "pii-261", "category": "near_miss", "text": "commit 7fd5f518b762c338966ec0125251ccd340aa744a fixed the flaky test", "entities": []}
+{"id": "pii-262", "category": "near_miss", "text": "Please reset your password from the settings page.", "entities": []}
+{"id": "pii-263", "category": "near_miss", "text": "The token budget is 7771 tokens per request.", "entities": []}
+{"id": "pii-264", "category": "near_miss", "text": "Part number 121-73-788 is back in stock.", "entities": []}
+{"id": "pii-265", "category": "near_miss", "text": "Invoice INV-2025-1783 is overdue.", "entities": []}
+{"id": "pii-266", "category": "near_miss", "text": "The meeting is in room 191 at 5pm.", "entities": []}
+{"id": "pii-267", "category": "near_miss", "text": "request_id=dbed24db4826338c5165a74f3c664a31 status=200", "entities": []}
+{"id": "pii-268", "category": "ip", "text": "The server at 192.168.24.44 stopped responding.", "entities": [{"type": "IP_ADDRESS", "value": "192.168.24.44"}]}
+{"id": "pii-269", "category": "ip", "text": "The server at 192.168.150.192 stopped responding.", "entities": [{"type": "IP_ADDRESS", "value": "192.168.150.192"}]}
+{"id": "pii-270", "category": "ip", "text": "The server at 192.168.94.73 stopped responding.", "entities": [{"type": "IP_ADDRESS", "value": "192.168.94.73"}]}
+{"id": "pii-271", "category": "ip", "text": "The server at 192.168.154.41 stopped responding.", "entities": [{"type": "IP_ADDRESS", "value": "192.168.154.41"}]}
+{"id": "pii-272", "category": "ip", "text": "The server at 192.168.62.225 stopped responding.", "entities": [{"type": "IP_ADDRESS", "value": "192.168.62.225"}]}
+{"id": "pii-273", "category": "ip", "text": "The server at 192.168.142.64 stopped responding.", "entities": [{"type": "IP_ADDRESS", "value": "192.168.142.64"}]}
+{"id": "pii-274", "category": "location", "text": "Our support center in Lisbon opens at 8am.", "entities": [{"type": "LOCATION", "value": "Lisbon"}]}
+{"id": "pii-275", "category": "location", "text": "Our support center in Toronto opens at 8am.", "entities": [{"type": "LOCATION", "value": "Toronto"}]}
+{"id": "pii-276", "category": "location", "text": "Our support center in Denver opens at 8am.", "entities": [{"type": "LOCATION", "value": "Denver"}]}
+{"id": "pii-277", "category": "location", "text": "Our support center in Dublin opens at 8am.", "entities": [{"type": "LOCATION", "value": "Dublin"}]}
+{"id": "pii-278", "category": "location", "text": "Our support center in Dublin opens at 8am.", "entities": [{"type": "LOCATION", "value": "Dublin"}]}
+{"id": "pii-279", "category": "location", "text": "Our support center in Nairobi opens at 8am.", "entities": [{"type": "LOCATION", "value": "Nairobi"}]}

@@ -14,6 +14,9 @@ Presidio's defaults miss two cases that matter for a gateway:
     order numbers and ids are not reported. A plain keyword window is used instead
     of Presidio's lemma-based enhancer, which misses phrasings like "call me at".
 
+`MastercardSeries2Recognizer` adds Luhn-validated Mastercard 2-series cards
+(2221–2720). Presidio's card regex predates that range.
+
 `SsnPatternRecognizer` covers dashed SSNs and excludes invalid ranges (000/666/9xx
 area, 00 group, 0000 serial), which Presidio scores only weakly without context.
 
@@ -78,6 +81,35 @@ class BarePhoneRecognizer(EntityRecognizer):
             for m in _BARE_NANP.finditer(text)
             if _PHONE_WORDS.search(text[max(0, m.start() - 30) : m.start()])
         ]
+
+
+def luhn_ok(digits: str) -> bool:
+    total = 0
+    for i, ch in enumerate(reversed(digits)):
+        d = int(ch)
+        if i % 2 == 1:
+            d = d * 2 - 9 if d > 4 else d * 2
+        total += d
+    return total % 10 == 0
+
+
+_MC2 = re.compile(r"\b2(?:2[2-9]\d|[3-6]\d\d|7[01]\d|720)[ -]?\d{4}[ -]?\d{4}[ -]?\d{4}\b")
+
+
+class MastercardSeries2Recognizer(EntityRecognizer):
+    def __init__(self) -> None:
+        super().__init__(supported_entities=["CREDIT_CARD"], name="TollgateMc2Recognizer", supported_language="en")
+
+    def load(self) -> None:
+        pass
+
+    def analyze(self, text: str, entities: list[str], nlp_artifacts: NlpArtifacts | None = None) -> list[RecognizerResult]:
+        out = []
+        for m in _MC2.finditer(text):
+            digits = re.sub(r"\D", "", m.group(0))
+            if len(digits) == 16 and 2221 <= int(digits[:4]) <= 2720 and luhn_ok(digits):
+                out.append(RecognizerResult("CREDIT_CARD", m.start(), m.end(), 1.0))
+        return out
 
 
 class SsnPatternRecognizer(PatternRecognizer):

@@ -59,7 +59,10 @@ class SecretPatternRecognizer(PatternRecognizer):
 _KEYWORD = r"(?:api[_-]?key|access[_-]?key|secret|token|passw(?:or)?d|pwd|credential|auth|bearer|private[_-]?key)"
 _CANDIDATE = re.compile(r"[A-Za-z0-9+/=_.\-]{32,}")
 _KEYWORD_NEAR = re.compile(_KEYWORD, re.IGNORECASE)
-_ASSIGNMENT = re.compile(r"(?i)\b(?:passw(?:or)?d|pwd|passphrase)\b\s*[:=]\s*[\"']?(?P<value>[^\s\"',;]{4,})")
+# Letter boundaries (not \b) so `db_password=` / `PASSWORD_DB:` also match: `_` is a word char.
+_ASSIGNMENT = re.compile(
+    r"(?i)(?<![a-z])(?:passw(?:or)?d|pwd|passphrase)(?![a-z])\w*\s*[:=]\s*[\"']?(?P<value>[^\s\"',;]{4,})"
+)
 _LOOKBEHIND_CHARS = 40
 
 
