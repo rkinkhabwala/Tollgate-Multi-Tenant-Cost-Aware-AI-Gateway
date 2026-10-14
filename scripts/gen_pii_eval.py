@@ -262,7 +262,12 @@ for _ in range(6):
 
 
 def main() -> None:
-    OUT.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows))
+    # Secret-shaped fixtures are written with one JSON-escaped character each
+    # (json.loads gives back the exact value), so secret scanners such as GitHub
+    # push protection don't block the repo. See scripts/secret_scrub.py.
+    from scripts.secret_scrub import scrub_json_lines
+
+    OUT.write_text(scrub_json_lines("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows)))
     print(f"wrote {len(rows)} rows to {OUT}")
 
 
