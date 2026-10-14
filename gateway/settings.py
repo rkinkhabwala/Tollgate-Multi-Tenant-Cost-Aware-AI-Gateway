@@ -63,6 +63,9 @@ class Settings(BaseSettings):
     bootstrap_admin_email: str | None = "admin@tollgate.local"
     bootstrap_admin_password: SecretStr | None = SecretStr("admin-dev-password")
 
+    # --- Redaction (spec §7) ----------------------------------------------------
+    redaction_workers: int = 2  # thread pool for Presidio/spaCy analysis
+
     # --- Limits -----------------------------------------------------------------
     max_body_bytes: int = 2 * 1024 * 1024  # spec §15
     default_budget_usd: float = 100.0

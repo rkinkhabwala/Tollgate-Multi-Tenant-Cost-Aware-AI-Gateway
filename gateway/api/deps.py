@@ -21,6 +21,7 @@ from gateway.pipeline.context import RequestContext
 from gateway.policy.loader import PolicyStore
 from gateway.policy.schema import AppPolicy
 from gateway.providers.registry import ProviderRegistry
+from gateway.redaction.engine import RedactionEngine
 from gateway.security.admin_auth import AdminAuthProvider
 from gateway.settings import Settings
 
@@ -37,6 +38,7 @@ class Services:
     chat_pipeline: Pipeline  # full pipeline for /v1/chat/completions
     auth_pipeline: Pipeline  # authn → authz → ratelimit for /v1/models, /v1/usage
     admin_auth: AdminAuthProvider
+    redaction: RedactionEngine | None = None  # shared Presidio engine (None only in some unit tests)
 
 
 def get_services(request: Request) -> Services:

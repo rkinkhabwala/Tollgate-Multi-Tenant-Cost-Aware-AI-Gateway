@@ -3,10 +3,13 @@
 The pipeline order follows spec §3.1. Phase 1 stages are implemented. Later-phase
 stages are pass-through placeholders, listed here so the final shape is visible:
 
-    authn → authz → ratelimit → budget* → redact* → cache* → optimize*
-          → classify* → route (static in Phase 1) → invoke
-    post: meter          (validate / cache write / rehydrate join in Phases 2-4)
-    (* = pass-through placeholder in Phase 1)
+    authn → authz → ratelimit → budget* → redact → cache* → optimize*
+          → classify* → route (static) → invoke → rehydrate
+    post: meter          (validate / cache write join in Phases 3-4)
+    (* = pass-through placeholder until its phase)
+
+`rehydrate` sits in the pre-response list because, for streams, it must wrap the
+stream before the first byte goes out.
 
 Cross-cutting HTTP concerns are handled here as well:
 * a request body size limit (2 MB, spec §15), enforced while streaming the body in;
@@ -52,10 +55,12 @@ from gateway.pipeline.meter import MeterStage
 from gateway.pipeline.optimize import OptimizeStage
 from gateway.pipeline.ratelimit import RateLimiter, RateLimitStage
 from gateway.pipeline.redact import RedactStage
+from gateway.pipeline.rehydrate import RehydrateStage
 from gateway.pipeline.route import StaticRouteStage
 from gateway.policy.loader import PolicyStore, load_default_policy
 from gateway.providers.ollama import OllamaAdapter
 from gateway.providers.registry import ProviderRegistry
+from gateway.redaction.engine import RedactionEngine
 from gateway.security.admin_auth import LocalAdminAuth
 from gateway.services.admin import ensure_bootstrap_admin
 from gateway.settings import Settings, get_settings
@@ -112,7 +117,9 @@ async def _noop_receive() -> Message:  # pragma: no cover
     return {"type": "http.disconnect"}
 
 
-def build_services(settings: Settings, db: Database, redis: Redis, registry: ProviderRegistry, catalog: ModelCatalog) -> tuple[Services, KeyToucher]:
+def build_services(
+    settings: Settings, db: Database, redis: Redis, registry: ProviderRegistry, catalog: ModelCatalog, redaction: RedactionEngine
+) -> tuple[Services, KeyToucher]:
     policies = PolicyStore(db, redis)
     limiter = RateLimiter(redis)
     toucher = KeyToucher(db, settings.key_touch_interval_s)
@@ -126,12 +133,13 @@ def build_services(settings: Settings, db: Database, redis: Redis, registry: Pro
             authz,
             ratelimit,
             BudgetStage(),
-            RedactStage(),
+            RedactStage(redaction),
             CacheLookupStage(),
             OptimizeStage(),
             ClassifyStage(),
             StaticRouteStage(catalog, registry, settings.default_model),
             InvokeStage(catalog, registry),
+            RehydrateStage(),
         ],
         post_stages=[MeterStage(redis, catalog, limiter, settings.usage_stream)],
     )
@@ -146,6 +154,7 @@ def build_services(settings: Settings, db: Database, redis: Redis, registry: Pro
         chat_pipeline=chat,
         auth_pipeline=Pipeline([authn, authz, ratelimit]),
         admin_auth=LocalAdminAuth(db, settings),
+        redaction=redaction,
     )
     return services, toucher
 
@@ -163,7 +172,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if await ensure_bootstrap_admin(db, settings.bootstrap_admin_email, settings.bootstrap_admin_password.get_secret_value()):
             log.info("created bootstrap platform admin", extra={"email": settings.bootstrap_admin_email})
 
-    services, toucher = build_services(settings, db, redis, registry, catalog)
+    # Presidio + spaCy en_core_web_lg takes seconds to load: build once, off the loop.
+    redaction = await asyncio.to_thread(RedactionEngine, settings.redaction_workers)
+    services, toucher = build_services(settings, db, redis, registry, catalog, redaction)
     app.state.services = services
 
     tasks: list[asyncio.Task[None]] = []
@@ -192,6 +203,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             await toucher.flush()
         except Exception:
             log.exception("final last_used_at flush failed")
+        redaction.close()
         await registry.aclose()
         await redis.aclose()
         await db.dispose()
@@ -247,6 +259,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             checks["redis"] = "ok"
         except Exception:
             checks["redis"] = "down"
+        checks["presidio"] = "ok" if s.redaction is not None else "down"
         ok = all(v == "ok" for v in checks.values())
         return JSONResponse({"status": "ok" if ok else "degraded", **checks}, status_code=200 if ok else 503)
 

@@ -59,7 +59,9 @@ class RoutingPolicy(_Strict):
 
 
 class CustomPattern(_Strict):
-    name: str = Field(pattern=r"^[A-Z][A-Z0-9_]{0,40}$")
+    # ≤ 20 chars keeps every placeholder (<<NAME_123>>) within the streaming
+    # re-hydrator's 32-char tail buffer (spec §7.4).
+    name: str = Field(pattern=r"^[A-Z][A-Z0-9_]{0,19}$")
     regex: str
     action: RedactionAction = "tokenize"
 
@@ -86,8 +88,18 @@ class RedactionPolicy(_Strict):
             "PHONE_NUMBER": "tokenize",
         }
     )
-    custom_patterns: list[CustomPattern] = Field(default_factory=list)
+    custom_patterns: list[CustomPattern] = Field(default_factory=list, max_length=50)
+    # Literal terms (e.g. internal codenames) matched case-insensitively as entity
+    # DENY_TERM. Spec §7.2 calls for tenant deny-lists; §9's schema had no field.
+    deny_terms: list[str] = Field(default_factory=list, max_length=500)
     score_threshold: float = Field(0.5, ge=0, le=1)
+
+    @field_validator("deny_terms")
+    @classmethod
+    def _terms_nonblank(cls, v: list[str]) -> list[str]:
+        if any(not t.strip() or len(t) > 200 for t in v):
+            raise ValueError("deny_terms must be non-blank strings of at most 200 chars")
+        return v
 
 
 class CachePolicy(_Strict):

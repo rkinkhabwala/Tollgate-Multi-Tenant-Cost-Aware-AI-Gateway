@@ -17,7 +17,15 @@ dependencies = [
     "argon2-cffi>=23.1",
     "pyjwt>=2.9",
     "pyyaml>=6.0",
+    # Phase 2 — redaction (spec §7.2)
+    "presidio-analyzer>=2.2.360",
+    "spacy>=3.8,<3.9",
+    "en-core-web-lg",
 ]
+
+[tool.uv.sources]
+# spaCy models are not on PyPI; pin the release wheel matching spaCy 3.8.
+en-core-web-lg = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl" }
 
 [dependency-groups]
 dev = [

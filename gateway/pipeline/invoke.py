@@ -20,6 +20,7 @@ from collections.abc import AsyncIterator
 from gateway.catalog import ModelCatalog
 from gateway.errors import upstream_error
 from gateway.pipeline.context import Attempt, RequestContext
+from gateway.pipeline.redact import use_unredacted_for_local
 from gateway.providers.base import ChatChunk, ProviderError
 from gateway.providers.registry import ProviderRegistry
 
@@ -38,6 +39,7 @@ class InvokeStage:
         adapter = self._registry.get(model.provider) if model else None
         if model is None or adapter is None:
             raise upstream_error(503, "The routed model is not available.")
+        use_unredacted_for_local(ctx)  # §7.6: local tier + redact_for_local=false
         if ctx.working is None:
             ctx.working = ctx.original.model_copy(deep=True)
 

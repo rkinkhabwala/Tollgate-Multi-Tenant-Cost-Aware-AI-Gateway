@@ -41,16 +41,16 @@ async def test_streaming_defers_post_stages_until_finish() -> None:
 
 def test_stages_satisfy_protocol() -> None:
     from gateway.pipeline.budget import BudgetStage
-    from gateway.pipeline.redact import RedactStage
+    from gateway.pipeline.rehydrate import RehydrateStage
 
     assert isinstance(Recorder("x", []), Stage)
-    assert isinstance(BudgetStage(), Stage) and isinstance(RedactStage(), Stage)
+    assert isinstance(BudgetStage(), Stage) and isinstance(RehydrateStage(), Stage)
 
 
 def test_context_repr_hides_sensitive_fields() -> None:
     from tests.unit.fakes import chat_request
 
     ctx = make_ctx(chat_request("my password is hunter2"), api_key="tg_live_abcdefgh_" + "S" * 32)
-    ctx.vault = {"<<EMAIL_1>>": "a@b.c"}
+    ctx.vault.tokenize("EMAIL_ADDRESS", "a@b.c")
     text = repr(ctx)
     assert "hunter2" not in text and "S" * 32 not in text and "a@b.c" not in text

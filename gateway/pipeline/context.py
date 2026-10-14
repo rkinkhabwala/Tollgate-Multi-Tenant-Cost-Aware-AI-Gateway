@@ -18,6 +18,7 @@ from typing import Literal
 
 from gateway.policy.schema import AppPolicy
 from gateway.providers.base import ChatChunk, ChatRequest, ChatResponse
+from gateway.redaction.vault import Vault
 
 CacheStatus = Literal["miss", "exact", "semantic"]
 
@@ -79,7 +80,8 @@ class RequestContext:
     policy: AppPolicy | None = None
     original: ChatRequest | None = field(default=None, repr=False)  # never logged
     working: ChatRequest | None = field(default=None, repr=False)  # copy sent upstream
-    vault: dict[str, str] = field(default_factory=dict, repr=False)  # in-memory only (Phase 2)
+    vault: Vault = field(default_factory=Vault, repr=False)  # placeholder → original; memory only
+    unredacted: ChatRequest | None = field(default=None, repr=False)  # kept only when redact_for_local=false
     pii_counts: dict[str, int] = field(default_factory=dict)
     classification: Classification | None = None
     route: RouteDecision | None = None
