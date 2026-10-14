@@ -72,7 +72,7 @@ Every response carries these headers (spec §11):
 | `x-tollgate-request-id` | Request id |
 | `x-tollgate-model` | Model the request was routed to |
 | `x-tollgate-route-reason` | Why that model was chosen |
-| `x-tollgate-cache` | `miss` or `hit` (always `miss` in Phase 1) |
+| `x-tollgate-cache` | `miss`, `exact` or `semantic` (always `miss` until Phase 4) |
 | `x-tollgate-cost-usd` | Actual cost of this call |
 | `x-tollgate-saved-usd` | Baseline-model cost minus actual cost |
 | `x-tollgate-redacted` | Number of redacted entities (a count; never values) |
