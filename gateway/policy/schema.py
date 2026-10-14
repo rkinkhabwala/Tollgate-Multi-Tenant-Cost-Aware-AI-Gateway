@@ -38,8 +38,17 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+Profile = Literal["hosted", "local-only"]
+
+
 class RoutingPolicy(_Strict):
     mode: Literal["auto"] = "auto"
+    # Tier → model map from config/models.yaml (Phase 3). `local-only` keeps every
+    # tier on the host (qwen2.5 1.5b/7b/14b); savings are still measured against
+    # the app's hosted baseline_model.
+    profile: Profile = "hosted"
+    # Models a client may *pin* (spec §6.2 step 4). Routing itself follows the
+    # profile and the min/max tier clamps.
     allow_pinning: bool = False
     allowed_models: list[str] = Field(
         default_factory=lambda: ["ollama/qwen2.5:7b", "anthropic/claude-haiku-5-5", "anthropic/claude-sonnet-5-5"]

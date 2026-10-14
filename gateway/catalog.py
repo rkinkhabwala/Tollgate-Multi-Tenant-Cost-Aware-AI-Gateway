@@ -5,7 +5,13 @@ and the rows are kept in memory. Cost calculation reads prices from here on ever
 request, so it must not hit the database.
 
 Cost formula (spec §11): `input_tokens × input_price + output_tokens × output_price`,
-with prices in USD per million tokens. Provider cache discounts arrive in Phase 4.
+with prices in USD per million tokens. Models with a long-context tier (Claude Haiku
+5.5: prompts over 100K tokens) switch to the long prices for the whole request when
+the input exceeds the threshold. Provider cache discounts arrive in Phase 4.
+
+Profiles (Phase 3): named `tier → [model ids]` maps (`hosted`, `local-only`). An app
+picks one with `routing.profile`. A model's own `tier` field is informational; the
+router always uses the profile.
 """
 
 from __future__ import annotations
@@ -36,31 +42,48 @@ class CatalogModel:
     supports_tools: bool = False
     supports_json: bool = False
     enabled: bool = True
+    long_context_threshold: int | None = None
+    long_input_usd_per_mtok: Decimal | None = None
+    long_output_usd_per_mtok: Decimal | None = None
 
     def cost(self, input_tokens: int, output_tokens: int) -> Decimal:
-        raw = (input_tokens * self.input_usd_per_mtok + output_tokens * self.output_usd_per_mtok) / MTOK
+        inp, out = self.input_usd_per_mtok, self.output_usd_per_mtok
+        if self.long_context_threshold is not None and input_tokens > self.long_context_threshold:
+            inp = self.long_input_usd_per_mtok if self.long_input_usd_per_mtok is not None else inp
+            out = self.long_output_usd_per_mtok if self.long_output_usd_per_mtok is not None else out
+        raw = (input_tokens * inp + output_tokens * out) / MTOK
         return raw.quantize(USD_QUANT)
 
 
+_PRICE_FIELDS = ("input_usd_per_mtok", "output_usd_per_mtok", "long_input_usd_per_mtok", "long_output_usd_per_mtok")
+TIERS = ("local", "small", "medium", "large")
+
+
 class ModelCatalog:
-    def __init__(self, models: list[CatalogModel], tiers: dict[str, list[str]] | None = None) -> None:
+    def __init__(
+        self,
+        models: list[CatalogModel],
+        profiles: dict[str, dict[str, list[str]]] | None = None,
+        escalation_order: list[str] | None = None,
+        prices_checked: str | None = None,
+    ) -> None:
         self._by_id = {m.id: m for m in models}
-        self.tiers = tiers or {}
+        self.profiles = profiles or {}
+        self.escalation_order = list(escalation_order or TIERS)
+        self.prices_checked = prices_checked
 
     @classmethod
     def from_yaml(cls, path: Path) -> ModelCatalog:
         raw = yaml.safe_load(path.read_text())
         models = [
-            CatalogModel(
-                **{
-                    **m,
-                    "input_usd_per_mtok": Decimal(str(m["input_usd_per_mtok"])),
-                    "output_usd_per_mtok": Decimal(str(m["output_usd_per_mtok"])),
-                }
-            )
+            CatalogModel(**{**m, **{k: Decimal(str(m[k])) for k in _PRICE_FIELDS if m.get(k) is not None}})
             for m in raw["models"]
         ]
-        return cls(models, raw.get("tiers", {}))
+        return cls(models, raw.get("profiles", {}), raw.get("escalation_order"), raw.get("prices_checked"))
+
+    def profile(self, name: str) -> dict[str, list[str]]:
+        """tier → model ids for a profile (unknown profile → empty)."""
+        return self.profiles.get(name, {})
 
     def get(self, model_id: str) -> CatalogModel | None:
         m = self._by_id.get(model_id)

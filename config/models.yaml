@@ -1,16 +1,41 @@
 # Tollgate model catalog (spec §8.1). Loaded into the `models` table at gateway startup.
 #
-# !!! PRICES FOR HOSTED MODELS ARE PLACEHOLDERS (spec §8.1) !!!
-# Fill in current provider pricing before go-live. They exist in Phase 1 only so
-# that `baseline_cost_usd` (what the app's premium baseline model would have cost)
-# is non-zero and savings are demonstrable. Hosted adapters arrive in Phase 3.
-# OpenAI rows are omitted until concrete model names are chosen ("openai/<small-model>").
+# Anthropic prices: checked 2026-10-14 against
+#   https://platform.claude.com/docs/en/about-claude/pricing
+#   (first-party Claude API rates, USD per million tokens)
+# REVIEW BEFORE GO-LIVE: prices change; re-check the page and update `prices_checked`.
+#
+# OpenAI is intentionally absent until concrete models are chosen. Its adapter exists
+# (gateway/providers/openai.py) and is tested with mocks only.
+
+prices_checked: "2026-10-14"
 
 models:
+  # --- local (Ollama, $0) ------------------------------------------------------------
+  - id: ollama/qwen2.5:1.5b
+    provider: ollama
+    provider_model: qwen2.5:1.5b
+    tier: small
+    input_usd_per_mtok: 0
+    output_usd_per_mtok: 0
+    context_window: 32768
+    supports_tools: true
+    supports_json: true
+
   - id: ollama/qwen2.5:7b
     provider: ollama
     provider_model: qwen2.5:7b
     tier: local
+    input_usd_per_mtok: 0
+    output_usd_per_mtok: 0
+    context_window: 32768
+    supports_tools: true
+    supports_json: true
+
+  - id: ollama/qwen2.5:14b
+    provider: ollama
+    provider_model: qwen2.5:14b
+    tier: large
     input_usd_per_mtok: 0
     output_usd_per_mtok: 0
     context_window: 32768
@@ -27,13 +52,18 @@ models:
     supports_tools: false
     supports_json: false
 
+  # --- Anthropic (hosted) — prices checked 2026-10-14, review before go-live ---------------
   - id: anthropic/claude-haiku-5-5
     provider: anthropic
     provider_model: claude-haiku-5-5
     tier: small
-    input_usd_per_mtok: 1.00      # PLACEHOLDER
-    output_usd_per_mtok: 5.00     # PLACEHOLDER
-    context_window: 200000
+    input_usd_per_mtok: 0.10
+    output_usd_per_mtok: 0.50
+    # Haiku 5.5 bills prompts over 100,000 input tokens at higher rates.
+    long_context_threshold: 100000
+    long_input_usd_per_mtok: 0.50
+    long_output_usd_per_mtok: 2.50
+    context_window: 1000000
     supports_tools: true
     supports_json: true
 
@@ -41,9 +71,9 @@ models:
     provider: anthropic
     provider_model: claude-sonnet-5-5
     tier: medium
-    input_usd_per_mtok: 3.00      # PLACEHOLDER
-    output_usd_per_mtok: 15.00    # PLACEHOLDER
-    context_window: 200000
+    input_usd_per_mtok: 2.00
+    output_usd_per_mtok: 10.00
+    context_window: 1000000
     supports_tools: true
     supports_json: true
 
@@ -51,15 +81,27 @@ models:
     provider: anthropic
     provider_model: claude-opus-5-5
     tier: large
-    input_usd_per_mtok: 15.00     # PLACEHOLDER
-    output_usd_per_mtok: 75.00    # PLACEHOLDER
-    context_window: 200000
+    input_usd_per_mtok: 4.00
+    output_usd_per_mtok: 20.00
+    context_window: 1000000
     supports_tools: true
     supports_json: true
 
-tiers:
-  local:  [ollama/qwen2.5:7b]
-  small:  [anthropic/claude-haiku-5-5]
-  medium: [anthropic/claude-sonnet-5-5]
-  large:  [anthropic/claude-opus-5-5]
+# Tier profiles (spec §8.1). Each tier lists models in preference order; the router
+# picks the first eligible one and falls back along the list, then up the tiers.
+# An app selects a profile with `routing.profile` in its policy.
+profiles:
+  hosted:
+    local:  [ollama/qwen2.5:7b]
+    small:  [anthropic/claude-haiku-5-5]
+    medium: [anthropic/claude-sonnet-5-5]
+    large:  [anthropic/claude-opus-5-5]
+  # Everything on the host, for demos and air-gapped deployments. Savings are still
+  # measured against the app's hosted baseline_model.
+  local-only:
+    local:  [ollama/qwen2.5:1.5b]
+    small:  [ollama/qwen2.5:1.5b]
+    medium: [ollama/qwen2.5:7b]
+    large:  [ollama/qwen2.5:14b]
+
 escalation_order: [local, small, medium, large]

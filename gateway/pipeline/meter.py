@@ -39,7 +39,9 @@ STREAM_MAXLEN = 1_000_000  # approximate cap; the writer normally keeps it near 
 def compute_costs(ctx: RequestContext, catalog: ModelCatalog) -> tuple[Decimal, Decimal]:
     """Return `(actual_usd, baseline_usd)` for the context's attempts."""
     auth = ctx.require_auth()
-    actual = sum((catalog.cost(a.model_id, a.input_tokens, a.output_tokens) for a in ctx.attempts), Decimal(0))
+    for a in ctx.attempts:
+        a.cost_usd = catalog.cost(a.model_id, a.input_tokens, a.output_tokens)
+    actual = sum((a.cost_usd for a in ctx.attempts), Decimal(0))
     final = ctx.attempts[-1] if ctx.attempts else None
     if final is None:
         return Decimal(0).quantize(USD_QUANT), Decimal(0).quantize(USD_QUANT)
@@ -85,6 +87,22 @@ class MeterStage:
             "latency_ms": str(model_ms),
             "gateway_ms": str(max(0, total_ms - model_ms)),
             "status_code": str(ctx.status_code),
+            # One entry per upstream call (fallbacks, escalations): billed, no text.
+            "attempts": json.dumps(
+                [
+                    {
+                        "model": a.model_id,
+                        "kind": a.kind,
+                        "status": a.status_code,
+                        "input_tokens": a.input_tokens,
+                        "output_tokens": a.output_tokens,
+                        "cost_usd": str(a.cost_usd),
+                        "latency_ms": a.latency_ms,
+                        "error": a.error,
+                    }
+                    for a in ctx.attempts
+                ]
+            ),
         }
 
     async def process(self, ctx: RequestContext) -> RequestContext:

@@ -21,6 +21,9 @@ dependencies = [
     "presidio-analyzer>=2.2.360",
     "spacy>=3.8,<3.9",
     "en-core-web-lg",
+    "numpy>=2.4.6",
+    "jsonschema>=4.26.0",
+    "tokenizers>=0.23.3",
 ]
 
 [tool.uv.sources]

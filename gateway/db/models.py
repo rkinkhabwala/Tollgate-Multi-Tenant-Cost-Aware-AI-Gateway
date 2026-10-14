@@ -102,6 +102,9 @@ class Model(Base):
     supports_tools: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     supports_json: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
+    long_context_threshold: Mapped[int | None] = mapped_column(Integer)
+    long_input_usd_per_mtok: Mapped[Decimal | None] = mapped_column(Numeric(10, 4))
+    long_output_usd_per_mtok: Mapped[Decimal | None] = mapped_column(Numeric(10, 4))
 
 
 class UsageEvent(Base):
@@ -128,6 +131,7 @@ class UsageEvent(Base):
     latency_ms: Mapped[int | None] = mapped_column(Integer)
     gateway_ms: Mapped[int | None] = mapped_column(Integer)
     status_code: Mapped[int] = mapped_column(Integer, nullable=False)
+    attempts: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB)  # per-call, no text
 
 
 class AuditLog(Base):

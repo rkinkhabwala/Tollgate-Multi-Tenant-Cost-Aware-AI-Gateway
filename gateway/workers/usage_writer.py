@@ -64,6 +64,7 @@ def event_to_row(fields: dict[Any, Any]) -> dict[str, Any]:
         "latency_ms": int(f["latency_ms"]) if f.get("latency_ms") else None,
         "gateway_ms": int(f["gateway_ms"]) if f.get("gateway_ms") else None,
         "status_code": int(f["status_code"]),
+        "attempts": json.loads(f["attempts"]) if f.get("attempts") else None,
     }
 
 

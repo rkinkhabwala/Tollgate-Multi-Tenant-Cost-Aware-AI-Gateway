@@ -65,7 +65,9 @@ class Attempt:
     output_tokens: int = 0
     latency_ms: int = 0
     status_code: int = 200
-    error: str | None = None
+    error: str | None = None  # short machine code (e.g. "timeout"), never upstream text
+    kind: str = "primary"  # primary | fallback | escalation
+    cost_usd: Decimal = Decimal(0)  # filled by meter
 
 
 @dataclass
