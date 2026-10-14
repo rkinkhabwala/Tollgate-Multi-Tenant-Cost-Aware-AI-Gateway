@@ -37,7 +37,9 @@ from gateway.api import v1_chat, v1_models, v1_usage
 from gateway.api.admin import apps as admin_apps
 from gateway.api.admin import auth as admin_auth
 from gateway.api.admin import keys as admin_keys
+from gateway.api.admin import policies as admin_policies
 from gateway.api.admin import tenants as admin_tenants
+from gateway.api.admin import tools as admin_tools
 from gateway.api.admin.deps import admin_rate_limit
 from gateway.api.deps import Services
 from gateway.catalog import ModelCatalog
@@ -266,7 +268,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(v1_chat.router)
     app.include_router(v1_models.router)
     app.include_router(v1_usage.router)
-    for r in (admin_auth.router, admin_tenants.router, admin_apps.router, admin_keys.router):
+    admin_routers = (
+        admin_auth.router,
+        admin_tenants.router,
+        admin_apps.router,
+        admin_keys.router,
+        admin_policies.router,
+        admin_tools.router,
+    )
+    for r in admin_routers:
         app.include_router(r, dependencies=[Depends(admin_rate_limit)])
 
     app.add_middleware(BodySizeLimit, max_bytes=settings.max_body_bytes)

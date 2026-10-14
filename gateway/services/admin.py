@@ -19,7 +19,7 @@ from ipaddress import ip_network
 from typing import Any
 
 from redis.asyncio import Redis
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,7 +27,7 @@ from gateway.catalog import ModelCatalog
 from gateway.db.models import AdminUser, ApiKey, App, AppPolicy, AuditLog, Budget, Tenant
 from gateway.db.session import Database
 from gateway.policy.schema import AppPolicy as AppPolicyModel
-from gateway.redis_keys import AUTH_TOMBSTONE_TTL_S, REVOKED_TOMBSTONE, auth_cache_key
+from gateway.redis_keys import AUTH_TOMBSTONE_TTL_S, REVOKED_TOMBSTONE, app_key, auth_cache_key
 from gateway.security.api_keys import env_for_app, generate_api_key, hash_api_key
 from gateway.security.passwords import hash_password
 
@@ -272,3 +272,57 @@ async def tenant_of_key(db: Database, key_id: uuid.UUID) -> uuid.UUID:
     if tid is None:
         raise NotFound("key not found")
     return tid
+
+
+# --- policies (spec §9) ------------------------------------------------------------
+async def get_policy(db: Database, *, tenant_id: uuid.UUID, app_id: uuid.UUID) -> AppPolicy:
+    async with db.tenant_session(tenant_id) as s:
+        row = (await s.execute(select(AppPolicy).where(AppPolicy.app_id == app_id))).scalar_one_or_none()
+    if row is None:
+        raise NotFound("app not found")
+    return row
+
+
+async def put_policy(
+    db: Database, redis: Redis, *, actor: str, tenant_id: uuid.UUID, app_id: uuid.UUID, policy: AppPolicyModel
+) -> AppPolicy:
+    """Replace an app's policy: bump `version`, audit the change, invalidate caches now.
+
+    Invalidation: the AuthContext cached in `sys:auth:{prefix}` carries the policy
+    version, so it is dropped for every *active* key of the app (revocation
+    tombstones are kept). Cached policy documents under `t:{tid}:a:{aid}:policy:*`
+    are deleted too. The very next request therefore loads the new version.
+    """
+    new_doc = policy.model_dump(mode="json")
+    async with db.tenant_session(tenant_id) as s:
+        if await s.get(App, app_id) is None:
+            raise NotFound("app not found")
+        row = (await s.execute(select(AppPolicy).where(AppPolicy.app_id == app_id).with_for_update())).scalar_one_or_none()
+        if row is None:
+            row = AppPolicy(app_id=app_id, tenant_id=tenant_id, policy=new_doc, version=1)
+            s.add(row)
+            before: dict[str, Any] = {}
+        else:
+            before = dict(row.policy)
+            row.policy = new_doc
+            row.version += 1
+            row.updated_at = func.now()
+        await s.flush()
+        await s.refresh(row)
+        changed = {k: {"before": before.get(k), "after": new_doc.get(k)} for k in new_doc if before.get(k) != new_doc.get(k)}
+        await audit(
+            s,
+            tenant_id=tenant_id,
+            actor=actor,
+            action="policy.update",
+            target=f"app:{app_id}",
+            diff={"version": row.version, "changed": changed},
+        )
+        prefixes = list(
+            (await s.execute(select(ApiKey.prefix).where(ApiKey.app_id == app_id, ApiKey.revoked_at.is_(None)))).scalars()
+        )
+    stale = [auth_cache_key(p) for p in prefixes]
+    stale += [k async for k in redis.scan_iter(match=app_key(tenant_id, app_id, "policy:*"), count=500)]
+    if stale:
+        await redis.delete(*stale)
+    return row
