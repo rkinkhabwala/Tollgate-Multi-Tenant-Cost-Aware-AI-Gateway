@@ -244,6 +244,23 @@ for _ in range(6):
     add("location", f"Our support center in {city} opens at 8am.", ("LOCATION", city))
 
 
+# --- structured: JSON tool results, code with comments, logs (Phase 2.5 NER segmenting) ----------
+for _ in range(10):
+    n, e = name(), None
+    e = email(n)
+    add("structured", json.dumps({"ticket": rng.randint(1000, 9999), "customer": n, "contact": e, "status": "open"}),
+        ("PERSON", n), ("EMAIL_ADDRESS", e))
+for _ in range(8):
+    n = name()
+    add("structured", f"```python\n# owner: {n}\ndef refund(order_id: int) -> bool:\n    return True\n```", ("PERSON", n))
+for _ in range(6):
+    e, k = email(), secret()
+    add("structured", f"```yaml\nnotify: {e}\napi_key: {k}\nretries: 3\n```", ("EMAIL_ADDRESS", e), ("SECRET", k))
+for _ in range(6):
+    n = name()
+    add("structured", f'Tool result: {{"results": [{{"name": "{n}", "role": "approver", "score": 0.93}}], "count": 1}}', ("PERSON", n))
+
+
 def main() -> None:
     OUT.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows))
     print(f"wrote {len(rows)} rows to {OUT}")
