@@ -65,6 +65,11 @@ class Settings(BaseSettings):
 
     # --- Redaction (spec §7) ----------------------------------------------------
     redaction_workers: int = 4  # thread pool for Presidio/spaCy analysis (see redaction/engine.py)
+    # spaCy NER model. en_core_web_md was evaluated (Phase 2.5) and rejected: PERSON
+    # recall 93.7% vs 97.5% for _lg, and no faster with the NER-only pipeline.
+    redaction_model: str = "en_core_web_lg"
+    redaction_cache_entries: int = 20_000
+    redaction_cache_max_findings: int = 500_000
 
     # --- Limits -----------------------------------------------------------------
     max_body_bytes: int = 2 * 1024 * 1024  # spec §15

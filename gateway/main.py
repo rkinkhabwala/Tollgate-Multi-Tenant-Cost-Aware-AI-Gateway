@@ -62,6 +62,7 @@ from gateway.pipeline.route import StaticRouteStage
 from gateway.policy.loader import PolicyStore, load_default_policy
 from gateway.providers.ollama import OllamaAdapter
 from gateway.providers.registry import ProviderRegistry
+from gateway.redaction.cache import FindingsCache
 from gateway.redaction.engine import RedactionEngine
 from gateway.security.admin_auth import LocalAdminAuth
 from gateway.services.admin import ensure_bootstrap_admin
@@ -175,7 +176,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             log.info("created bootstrap platform admin", extra={"email": settings.bootstrap_admin_email})
 
     # Presidio + spaCy en_core_web_lg takes seconds to load: build once, off the loop.
-    redaction = await asyncio.to_thread(RedactionEngine, settings.redaction_workers)
+    redaction = await asyncio.to_thread(
+        RedactionEngine,
+        settings.redaction_workers,
+        settings.redaction_model,
+        FindingsCache(settings.redaction_cache_entries, settings.redaction_cache_max_findings),
+    )
     services, toucher = build_services(settings, db, redis, registry, catalog, redaction)
     app.state.services = services
 
