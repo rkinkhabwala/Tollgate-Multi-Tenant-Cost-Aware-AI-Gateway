@@ -21,7 +21,7 @@ from gateway.catalog import ModelCatalog
 from gateway.errors import bad_request, not_found, permission_denied
 from gateway.pipeline.context import RequestContext
 from gateway.policy.loader import PolicyStore
-from gateway.providers.base import estimate_tokens
+from gateway.providers.tokens import conservative_count
 
 TIER_ALIASES = frozenset({"tollgate/local", "tollgate/small", "tollgate/medium", "tollgate/large"})
 
@@ -68,7 +68,8 @@ class AuthZStage:
                     raise permission_denied(f"Model '{req.model}' is not allowed by this app's policy.")
                 if self._catalog.get(req.model) is None:
                     raise not_found(f"The model '{req.model}' does not exist.", code="model_not_found")
-            ctx.estimated_input_tokens = estimate_tokens(req)
+            # Conservative count (model not chosen yet); see providers/tokens.py.
+            ctx.estimated_input_tokens = conservative_count(req)
             if ctx.estimated_input_tokens > ctx.policy.limits.max_input_tokens:
                 raise bad_request(
                     f"Input is ~{ctx.estimated_input_tokens} tokens; this app allows at most "

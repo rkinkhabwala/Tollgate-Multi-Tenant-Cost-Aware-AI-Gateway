@@ -45,6 +45,21 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr | None = None  # optional; adapter arrives in Phase 3
     anthropic_api_key: SecretStr | None = None  # optional; adapter arrives in Phase 3
 
+    anthropic_base_url: str = "https://api.anthropic.com"
+    openai_base_url: str = "https://api.openai.com"
+    provider_default_max_tokens: int = 4096  # Anthropic requires max_tokens
+
+    # --- Routing (spec §8) -------------------------------------------------------------
+    # RediSearch only indexes DB 0, so the router's (global, synthetic) vector index
+    # gets its own URL. Tenant data never goes there.
+    router_redis_url: str = "redis://localhost:6379/0"
+    router_seed_path: Path = REPO_ROOT / "data" / "router_seed.jsonl"
+    router_seed_emb_path: Path = REPO_ROOT / "data" / "router_seed.emb.npz"
+    embed_model: str = "ollama/nomic-embed-text"
+    classifier_layer_c: bool = False  # small-LLM tie-breaker (qwen2.5:1.5b), off by default
+    classifier_layer_c_model: str = "ollama/qwen2.5:1.5b"
+    tokenizer_dir: Path = REPO_ROOT / "config" / "tokenizers"
+
     # --- Catalog / policy files -------------------------------------------------
     models_yaml: Path = REPO_ROOT / "config" / "models.yaml"
     default_policy_json: Path = REPO_ROOT / "config" / "default_policy.json"

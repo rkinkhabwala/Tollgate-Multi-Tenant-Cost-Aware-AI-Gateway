@@ -14,7 +14,7 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Any, Literal
 
 from gateway.policy.schema import AppPolicy
 from gateway.providers.base import ChatChunk, ChatRequest, ChatResponse
@@ -42,11 +42,12 @@ class AuthContext:
 
 @dataclass(frozen=True)
 class Classification:
-    """Classifier output (Phase 3)."""
+    """Classifier output (spec §8.3). `detail` holds per-layer votes, labels/numbers only."""
 
     task_type: str
     complexity: str
     confidence: float
+    detail: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -87,6 +88,8 @@ class RequestContext:
     pii_counts: dict[str, int] = field(default_factory=dict)
     classification: Classification | None = None
     route: RouteDecision | None = None
+    candidates: list[Any] = field(default_factory=list)  # CatalogModels, in fallback order
+    escalations: int = 0  # quality escalations (validate stage)
     attempts: list[Attempt] = field(default_factory=list)
     cache_status: CacheStatus = "miss"
     response: ChatResponse | None = field(default=None, repr=False)

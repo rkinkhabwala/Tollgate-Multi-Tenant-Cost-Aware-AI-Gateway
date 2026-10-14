@@ -17,11 +17,14 @@ from redis.asyncio import Redis
 from gateway.catalog import ModelCatalog
 from gateway.db.session import Database
 from gateway.pipeline.base import Pipeline
+from gateway.pipeline.classify import ClassifyStage
 from gateway.pipeline.context import RequestContext
 from gateway.policy.loader import PolicyStore
 from gateway.policy.schema import AppPolicy
+from gateway.providers.circuit_breaker import CircuitBreaker
 from gateway.providers.registry import ProviderRegistry
 from gateway.redaction.engine import RedactionEngine
+from gateway.routing.router import Router
 from gateway.security.admin_auth import AdminAuthProvider
 from gateway.settings import Settings
 
@@ -39,6 +42,9 @@ class Services:
     auth_pipeline: Pipeline  # authn → authz → ratelimit for /v1/models, /v1/usage
     admin_auth: AdminAuthProvider
     redaction: RedactionEngine | None = None  # shared Presidio engine (None only in some unit tests)
+    router: Router | None = None
+    classifier: ClassifyStage | None = None
+    breaker: CircuitBreaker | None = None
 
 
 def get_services(request: Request) -> Services:

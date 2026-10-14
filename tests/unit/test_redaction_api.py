@@ -31,13 +31,13 @@ from gateway.pipeline.meter import MeterStage
 from gateway.pipeline.ratelimit import RateLimiter, RateLimitStage
 from gateway.pipeline.redact import RedactStage
 from gateway.pipeline.rehydrate import RehydrateStage
-from gateway.pipeline.route import StaticRouteStage
+from gateway.pipeline.route import RouteStage
 from gateway.policy.schema import AppPolicy
 from gateway.providers.base import ChatChunk, ChatMessage, ChatRequest, ChatResponse, Choice, ChunkChoice, Usage
 from gateway.providers.registry import ProviderRegistry
 from gateway.redaction.engine import RedactionEngine
 from gateway.settings import Settings
-from tests.unit.fakes import FakePolicyStore, FakeResolver, make_catalog, make_key_record, make_redis, new_key
+from tests.unit.fakes import make_router, FakePolicyStore, FakeResolver, make_catalog, make_key_record, make_redis, new_key
 
 STREAM = "sys:usage_events"
 EMAIL, PHONE, NAME = "dana.whitfield@northwind.example", "415-555-0188", "Dana Whitfield"
@@ -97,7 +97,7 @@ def harness(engine: RedactionEngine):
                 authz,
                 RateLimitStage(limiter),
                 RedactStage(engine),
-                StaticRouteStage(catalog, registry, "ollama/qwen2.5:7b"),
+                RouteStage(make_router(registry)),
                 InvokeStage(catalog, registry),
                 RehydrateStage(),
             ],

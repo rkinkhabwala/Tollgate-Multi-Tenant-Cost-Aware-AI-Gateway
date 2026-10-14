@@ -37,14 +37,44 @@ def make_redis() -> fakeredis.aioredis.FakeRedis:
     return fakeredis.aioredis.FakeRedis()
 
 
+PROFILES = {
+    "hosted": {
+        "local": ["ollama/qwen2.5:7b"],
+        "small": ["anthropic/claude-haiku-5-5"],
+        "medium": ["anthropic/claude-sonnet-5-5"],
+        "large": ["anthropic/claude-opus-5-5"],
+    },
+    "local-only": {
+        "local": ["ollama/qwen2.5:1.5b"],
+        "small": ["ollama/qwen2.5:1.5b"],
+        "medium": ["ollama/qwen2.5:7b"],
+        "large": ["ollama/qwen2.5:14b"],
+    },
+}
+
+
 def make_catalog() -> ModelCatalog:
     return ModelCatalog(
         [
+            CatalogModel("ollama/qwen2.5:1.5b", "ollama", "qwen2.5:1.5b", "small", Decimal(0), Decimal(0), 32768, True, True),
             CatalogModel("ollama/qwen2.5:7b", "ollama", "qwen2.5:7b", "local", Decimal(0), Decimal(0), 32768, True, True),
+            CatalogModel("ollama/qwen2.5:14b", "ollama", "qwen2.5:14b", "large", Decimal(0), Decimal(0), 32768, True, True),
             CatalogModel("anthropic/claude-haiku-5-5", "anthropic", "claude-haiku-5-5", "small", Decimal(1), Decimal(5), 200000, True, True),
             CatalogModel("anthropic/claude-sonnet-5-5", "anthropic", "claude-sonnet-5-5", "medium", Decimal(3), Decimal(15), 200000, True, True),
-        ]
+            CatalogModel("anthropic/claude-opus-5-5", "anthropic", "claude-opus-5-5", "large", Decimal(5), Decimal(25), 200000, True, True),
+        ],
+        PROFILES,
     )
+
+
+def make_router(registry, breaker=None):  # type: ignore[no-untyped-def]
+    """Real Router over the fake catalog (Qwen counts use the vendored tokenizer)."""
+    from gateway.providers.circuit_breaker import CircuitBreaker
+    from gateway.providers.tokens import TokenCounter
+    from gateway.routing.router import Router
+    from gateway.settings import REPO_ROOT
+
+    return Router(make_catalog(), registry, breaker or CircuitBreaker(), TokenCounter(REPO_ROOT / "config" / "tokenizers"))
 
 
 def make_key_record(full_key: str, prefix: str, **overrides: object) -> KeyRecord:

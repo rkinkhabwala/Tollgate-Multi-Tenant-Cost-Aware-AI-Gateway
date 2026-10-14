@@ -21,11 +21,11 @@ from gateway.pipeline.base import Pipeline
 from gateway.pipeline.invoke import InvokeStage
 from gateway.pipeline.meter import MeterStage
 from gateway.pipeline.ratelimit import RateLimiter, RateLimitStage
-from gateway.pipeline.route import StaticRouteStage
+from gateway.pipeline.route import RouteStage
 from gateway.policy.schema import AppPolicy
 from gateway.providers.registry import ProviderRegistry
 from gateway.settings import Settings
-from tests.unit.fakes import FakeAdapter, FakePolicyStore, FakeResolver, make_catalog, make_key_record, make_redis, new_key
+from tests.unit.fakes import make_router, FakeAdapter, FakePolicyStore, FakeResolver, make_catalog, make_key_record, make_redis, new_key
 
 STREAM = "sys:usage_events"
 
@@ -53,7 +53,7 @@ def harness():
         policies=None,  # type: ignore[arg-type]
         default_policy=policy,
         chat_pipeline=Pipeline(
-            [authn, authz, rl, StaticRouteStage(catalog, registry, "ollama/qwen2.5:7b"), InvokeStage(catalog, registry)],
+            [authn, authz, rl, RouteStage(make_router(registry)), InvokeStage(catalog, registry)],
             [MeterStage(redis, catalog, limiter, STREAM)],
         ),
         auth_pipeline=Pipeline([authn, authz, rl]),
@@ -73,7 +73,7 @@ async def test_sdk_non_streaming_with_headers(harness) -> None:
     assert completion.usage.prompt_tokens == 25
     h = raw.headers
     assert h["x-tollgate-model"] == "ollama/qwen2.5:7b"
-    assert h["x-tollgate-route-reason"] == "static:default"
+    assert h["x-tollgate-route-reason"] == "unclassified;>local"  # no classify stage in this harness
     assert h["x-tollgate-cache"] == "miss"
     assert h["x-tollgate-request-id"].startswith("req_")
     assert h["x-tollgate-redacted"] == "0"

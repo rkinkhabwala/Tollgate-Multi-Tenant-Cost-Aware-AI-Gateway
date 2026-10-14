@@ -42,7 +42,8 @@ def compute_costs(ctx: RequestContext, catalog: ModelCatalog) -> tuple[Decimal, 
     for a in ctx.attempts:
         a.cost_usd = catalog.cost(a.model_id, a.input_tokens, a.output_tokens)
     actual = sum((a.cost_usd for a in ctx.attempts), Decimal(0))
-    final = ctx.attempts[-1] if ctx.attempts else None
+    served = [a for a in ctx.attempts if a.status_code == 200]
+    final = served[-1] if served else (ctx.attempts[-1] if ctx.attempts else None)  # the answer the client got
     if final is None:
         return Decimal(0).quantize(USD_QUANT), Decimal(0).quantize(USD_QUANT)
     if catalog.get(auth.baseline_model) is None:
@@ -64,7 +65,8 @@ class MeterStage:
 
     def build_event(self, ctx: RequestContext) -> dict[str, str]:
         auth = ctx.require_auth()
-        final = ctx.attempts[-1] if ctx.attempts else None
+        served = [a for a in ctx.attempts if a.status_code == 200]
+        final = served[-1] if served else (ctx.attempts[-1] if ctx.attempts else None)
         model_ms = sum(a.latency_ms for a in ctx.attempts)
         total_ms = int((time.perf_counter() - ctx.started_at) * 1000)
         return {
@@ -77,7 +79,7 @@ class MeterStage:
             "requested_model": ctx.original.model if ctx.original else "",
             "routed_model": ctx.route.model_id if ctx.route else "",
             "route_reason": ctx.route.reason if ctx.route else "",
-            "escalations": str(max(0, len(ctx.attempts) - 1)),
+            "escalations": str(ctx.escalations),  # quality escalations; fallbacks show in attempts/route_reason
             "cache_status": ctx.cache_status,
             "input_tokens": str(final.input_tokens if final else 0),
             "output_tokens": str(final.output_tokens if final else 0),

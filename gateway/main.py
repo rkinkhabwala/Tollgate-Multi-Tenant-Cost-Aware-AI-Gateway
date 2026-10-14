@@ -58,12 +58,19 @@ from gateway.pipeline.optimize import OptimizeStage
 from gateway.pipeline.ratelimit import RateLimiter, RateLimitStage
 from gateway.pipeline.redact import RedactStage
 from gateway.pipeline.rehydrate import RehydrateStage
-from gateway.pipeline.route import StaticRouteStage
+from gateway.pipeline.route import RouteStage
+from gateway.pipeline.validate import ValidateStage
 from gateway.policy.loader import PolicyStore, load_default_policy
+from gateway.providers.anthropic import AnthropicAdapter
+from gateway.providers.circuit_breaker import CircuitBreaker
 from gateway.providers.ollama import OllamaAdapter
+from gateway.providers.openai import OpenAIAdapter
+from gateway.providers.tokens import TokenCounter
 from gateway.providers.registry import ProviderRegistry
 from gateway.redaction.cache import FindingsCache
 from gateway.redaction.engine import RedactionEngine
+from gateway.routing.knn import KnnClassifier
+from gateway.routing.router import Router
 from gateway.security.admin_auth import LocalAdminAuth
 from gateway.services.admin import ensure_bootstrap_admin
 from gateway.settings import Settings, get_settings
@@ -121,9 +128,20 @@ async def _noop_receive() -> Message:  # pragma: no cover
 
 
 def build_services(
-    settings: Settings, db: Database, redis: Redis, registry: ProviderRegistry, catalog: ModelCatalog, redaction: RedactionEngine
+    settings: Settings,
+    db: Database,
+    redis: Redis,
+    registry: ProviderRegistry,
+    catalog: ModelCatalog,
+    redaction: RedactionEngine,
+    knn: KnnClassifier | None = None,
 ) -> tuple[Services, KeyToucher]:
     policies = PolicyStore(db, redis)
+    breaker = CircuitBreaker()
+    router = Router(catalog, registry, breaker, TokenCounter(settings.tokenizer_dir))
+    layer_c = settings.classifier_layer_c_model.split("/", 1)[1] if settings.classifier_layer_c else None
+    classify = ClassifyStage(knn, registry, layer_c)
+    invoke = InvokeStage(catalog, registry, breaker)
     limiter = RateLimiter(redis)
     toucher = KeyToucher(db, settings.key_touch_interval_s)
     authn = AuthNStage(redis, DbKeyResolver(db), settings.auth_cache_ttl_s, on_key_used=toucher.touch)
@@ -139,9 +157,10 @@ def build_services(
             RedactStage(redaction),
             CacheLookupStage(),
             OptimizeStage(),
-            ClassifyStage(),
-            StaticRouteStage(catalog, registry, settings.default_model),
-            InvokeStage(catalog, registry),
+            classify,
+            RouteStage(router),
+            invoke,
+            ValidateStage(invoke, router),
             RehydrateStage(),
         ],
         post_stages=[MeterStage(redis, catalog, limiter, settings.usage_stream)],
@@ -158,8 +177,28 @@ def build_services(
         auth_pipeline=Pipeline([authn, authz, ratelimit]),
         admin_auth=LocalAdminAuth(db, settings),
         redaction=redaction,
+        router=router,
+        classifier=classify,
+        breaker=breaker,
     )
     return services, toucher
+
+
+def build_registry(settings: Settings) -> ProviderRegistry:
+    """Ollama always; hosted providers only when their API key is configured (spec §15)."""
+    registry = ProviderRegistry({"ollama": OllamaAdapter(settings.ollama_base_url, settings.ollama_timeout_s)})
+    if settings.anthropic_api_key is not None and settings.anthropic_api_key.get_secret_value():
+        registry.register(
+            "anthropic",
+            AnthropicAdapter(
+                settings.anthropic_api_key.get_secret_value(),
+                settings.anthropic_base_url,
+                default_max_tokens=settings.provider_default_max_tokens,
+            ),
+        )
+    if settings.openai_api_key is not None and settings.openai_api_key.get_secret_value():
+        registry.register("openai", OpenAIAdapter(settings.openai_api_key.get_secret_value(), settings.openai_base_url))
+    return registry
 
 
 @asynccontextmanager
@@ -168,7 +207,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     configure_logging(settings.log_level, settings.log_file)
     db = Database(settings.database_url_app, settings.database_url_system)
     redis = Redis.from_url(settings.redis_url, decode_responses=False)
-    registry = ProviderRegistry({"ollama": OllamaAdapter(settings.ollama_base_url, settings.ollama_timeout_s)})
+    registry = build_registry(settings)
     catalog = ModelCatalog.from_yaml(settings.models_yaml)
     await catalog.sync_to_db(db)
     if settings.bootstrap_admin_email and settings.bootstrap_admin_password:
@@ -182,7 +221,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         settings.redaction_model,
         FindingsCache(settings.redaction_cache_entries, settings.redaction_cache_max_findings),
     )
-    services, toucher = build_services(settings, db, redis, registry, catalog, redaction)
+    # kNN classifier index (RediSearch, DB 0). Build if missing; routing works without it.
+    router_redis = Redis.from_url(settings.router_redis_url, decode_responses=False)
+    ollama = registry.get("ollama")
+    embed_model = settings.embed_model.split("/", 1)[1]
+    knn = KnnClassifier(router_redis, lambda texts: ollama.embed(embed_model, texts)) if ollama else None
+    if knn is not None:
+        try:
+            await knn.ensure_index(settings.router_seed_path, settings.router_seed_emb_path)
+        except Exception:
+            log.exception("router index unavailable; classifier falls back to heuristics")
+    services, toucher = build_services(settings, db, redis, registry, catalog, redaction, knn)
     app.state.services = services
 
     tasks: list[asyncio.Task[None]] = []
@@ -212,6 +261,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         except Exception:
             log.exception("final last_used_at flush failed")
         redaction.close()
+        await router_redis.aclose()
         await registry.aclose()
         await redis.aclose()
         await db.dispose()
@@ -268,8 +318,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         except Exception:
             checks["redis"] = "down"
         checks["presidio"] = "ok" if s.redaction is not None else "down"
+        detail = {"circuits": s.breaker.snapshot() if s.breaker else {}, "router_index": bool(s.classifier and s.classifier._knn and s.classifier._knn.ready)}
         ok = all(v == "ok" for v in checks.values())
-        return JSONResponse({"status": "ok" if ok else "degraded", **checks}, status_code=200 if ok else 503)
+        return JSONResponse({"status": "ok" if ok else "degraded", **checks, **detail}, status_code=200 if ok else 503)
 
     app.include_router(v1_chat.router)
     app.include_router(v1_models.router)

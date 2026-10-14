@@ -21,6 +21,8 @@ x-gateway-env: &gateway-env
   TOLLGATE_DATABASE_URL_APP: postgresql+asyncpg://tollgate_app:${TOLLGATE_APP_DB_PASSWORD:-tollgate_app}@postgres:5432/tollgate
   TOLLGATE_DATABASE_URL_SYSTEM: postgresql+asyncpg://tollgate_system:${TOLLGATE_SYSTEM_DB_PASSWORD:-tollgate_system}@postgres:5432/tollgate
   TOLLGATE_REDIS_URL: redis://redis:6379/0
+  # Router kNN vector index (RediSearch only indexes DB 0; global synthetic data only).
+  TOLLGATE_ROUTER_REDIS_URL: redis://redis:6379/0
   # Native host Ollama by default; set to http://ollama:11434 with --profile ollama-docker.
   TOLLGATE_OLLAMA_BASE_URL: ${TOLLGATE_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
   TOLLGATE_DEFAULT_MODEL: ${TOLLGATE_DEFAULT_MODEL:-ollama/qwen2.5:7b}
