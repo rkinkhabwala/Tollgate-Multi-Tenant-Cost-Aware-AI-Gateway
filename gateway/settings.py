@@ -64,7 +64,7 @@ class Settings(BaseSettings):
     bootstrap_admin_password: SecretStr | None = SecretStr("admin-dev-password")
 
     # --- Redaction (spec §7) ----------------------------------------------------
-    redaction_workers: int = 2  # thread pool for Presidio/spaCy analysis
+    redaction_workers: int = 4  # thread pool for Presidio/spaCy analysis (see redaction/engine.py)
 
     # --- Limits -----------------------------------------------------------------
     max_body_bytes: int = 2 * 1024 * 1024  # spec §15

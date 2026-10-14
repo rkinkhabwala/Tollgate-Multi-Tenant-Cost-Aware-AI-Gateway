@@ -77,7 +77,7 @@ async def _dev_counts(dev: Settings) -> dict[str, int]:
 @pytest.fixture(scope="session")
 def engine() -> RedactionEngine:
     """Presidio + spaCy en_core_web_lg, loaded once per session (≈ 1–7 s)."""
-    eng = RedactionEngine(workers=2)
+    eng = RedactionEngine()
     yield eng
     eng.close()
 
